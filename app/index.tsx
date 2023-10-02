@@ -150,7 +150,7 @@ export default () => {
         customMapStyle={colorScheme === "dark" ? mapDarkStyle : mapLightStyle}
         provider={PROVIDER_GOOGLE}
       >
-        {beaches.slice(0, 200).map((beach) => (
+        {beaches.map((beach) => (
           <BeachMarker key={beach.id} beach={beach} />
         ))}
       </MapView>
