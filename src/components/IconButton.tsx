@@ -12,7 +12,7 @@ import { usePalette } from "../theme/usePalette";
 export interface IconButtonProps {
   children: React.ReactNode;
   onPress?: () => void;
-  variant?: "solid" | "outline-only";
+  variant?: "solid" | "outline-only" | "transparent";
   size?: "M" | "L";
   style?: any;
 }
@@ -42,29 +42,35 @@ export const IconButton = forwardRef<View, IconButtonProps>(
           height: 2,
         },
       },
+      buttonTransparent: {
+        backgroundColor: "transparent",
+        borderWidth: 0,
+      },
     });
 
     const buttonStyles: StyleProp<ViewStyle> = [styles.button];
 
     if (variant === "solid") {
       buttonStyles.push(styles.buttonSolid);
+    } else if (variant === "transparent") {
+      buttonStyles.push(styles.buttonTransparent);
     }
 
-    if (!onPress) {
+    /*   if (!onPress) {
       return (
         <View ref={ref} style={[buttonStyles, style]}>
           {children}
         </View>
       );
-    }
+    } */
 
     return (
       <Pressable
         ref={ref}
-        onPress={onPress}
+        onPress={onPress || (() => {})}
         style={({ pressed }) => [
           {
-            backgroundColor: pressed ? "rgb(210, 230, 255)" : "white",
+            opacity: pressed ? 0.5 : 1,
           },
           buttonStyles,
           style,

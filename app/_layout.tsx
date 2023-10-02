@@ -10,13 +10,14 @@ export default () => {
       <StatusBar style="auto" />
 
       <GestureHandlerRootView style={{ flex: 1 }}>
-          <View style={styles.container}>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-              }}
-            />
-          </View>
+        <View style={styles.container}>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              gestureEnabled: true,
+            }}
+          />
+        </View>
       </GestureHandlerRootView>
     </>
   );

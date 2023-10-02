@@ -1,3 +1,4 @@
+import { Link } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useRef } from "react";
 import {
@@ -7,7 +8,7 @@ import {
   useColorScheme,
   useWindowDimensions,
 } from "react-native";
-import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { MapPressEvent, PROVIDER_GOOGLE } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import mapDarkStyle from "../assets/theme/map/dark.json";
 import mapLightStyle from "../assets/theme/map/light.json";
@@ -21,12 +22,11 @@ import { IconButton } from "../src/components/IconButton";
 import { denmarkNorthEast, denmarkSouthWest } from "../src/constants";
 import { Mark } from "../src/icons/Mark";
 import { Settings01 } from "../src/icons/Settings01";
+import { usePreferences } from "../src/state/usePreferences";
 import { useSelectedBeach } from "../src/state/useSelectedBeach";
 import { usePalette } from "../src/theme/usePalette";
 import { useBeachesData } from "../src/useBeachesData";
 import { useLocation } from "../src/useLocation";
-import { Beach } from "../types";
-import { Link } from "expo-router";
 
 export default () => {
   const { background, foreground } = usePalette();
@@ -34,6 +34,11 @@ export default () => {
   const { beaches } = useBeachesData();
   const mapViewRef = useRef<MapView>(null);
   const colorScheme = useColorScheme();
+
+  const setSelectedBeachId = useSelectedBeach(
+    (state) => state.setSelectedBeachId
+  );
+  const mapProvider = usePreferences((state) => state.mapsProvider);
 
   const dimensions = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -47,14 +52,14 @@ export default () => {
         },
         zoom: 12,
       });
-
-      mapViewRef.current?.fitToSuppliedMarkers;
     }
   };
 
   useEffect(() => {
-    mapViewRef.current?.setMapBoundaries(denmarkNorthEast, denmarkSouthWest);
-  }, [mapViewRef]);
+    if (mapProvider === PROVIDER_GOOGLE) {
+      mapViewRef.current?.setMapBoundaries(denmarkNorthEast, denmarkSouthWest);
+    }
+  }, [mapViewRef, mapProvider]);
 
   const sheetIndexRef = useRef(0);
 
@@ -88,7 +93,7 @@ export default () => {
     }
 
     const index = sheetIndexRef.current;
-    const padding = index === 1 ? 40 : 120;
+    const padding = index === 1 ? 24 : 120;
 
     mapViewRef.current?.fitToCoordinates(coordinates, {
       edgePadding: {
@@ -130,6 +135,12 @@ export default () => {
     [background]
   );
 
+  const onMapPress = (event: MapPressEvent) => {
+    if (event.nativeEvent.action !== "marker-press") {
+      setSelectedBeachId();
+    }
+  };
+
   return (
     <>
       <StatusBar style="auto" />
@@ -148,7 +159,8 @@ export default () => {
         showsIndoors={false}
         showsIndoorLevelPicker={false}
         customMapStyle={colorScheme === "dark" ? mapDarkStyle : mapLightStyle}
-        provider={PROVIDER_GOOGLE}
+        provider={mapProvider}
+        onPress={onMapPress}
       >
         {beaches.map((beach) => (
           <BeachMarker key={beach.id} beach={beach} />

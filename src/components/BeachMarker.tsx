@@ -28,7 +28,7 @@ export const BeachMarker: FC<BeachMarkerProps> = ({ beach }) => {
         opacity.value = withTiming(1, { duration: 100 });
         scale.value = withTiming(1.3, { duration: 100 });
       } else if (selectedBeachId && selectedBeachId !== beach.id) {
-        opacity.value = withTiming(0.5, { duration: 100 });
+        opacity.value = withTiming(0.2, { duration: 100 });
         scale.value = withTiming(1, { duration: 100 });
       } else {
         opacity.value = withTiming(1, { duration: 100 });

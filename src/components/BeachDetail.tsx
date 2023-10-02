@@ -56,7 +56,10 @@ export const BeachDetail: FC<BeachDetailProps> = ({
   const weatherType = today?.weather_type;
 
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => [HEADER_HEIGHT + insets.bottom, "100%"], []);
+  const snapPoints = useMemo(
+    () => [HEADER_HEIGHT + insets.bottom, "100%"],
+    [insets]
+  );
 
   const indexRef = useRef(0);
 
@@ -66,11 +69,15 @@ export const BeachDetail: FC<BeachDetailProps> = ({
   };
 
   useEffect(() => {
-    if (selectedBeach && bottomSheetRef.current && indexRef.current < 0) {
+    if (!bottomSheetRef.current) {
+      return;
+    }
+
+    if (selectedBeach && indexRef.current < 0) {
       bottomSheetRef.current.snapToIndex(0);
     }
 
-    if (!selectedBeach && bottomSheetRef.current) {
+    if (!selectedBeach) {
       bottomSheetRef.current.close();
     }
   }, [selectedBeach, bottomSheetRef]);
@@ -99,7 +106,6 @@ export const BeachDetail: FC<BeachDetailProps> = ({
         ref={bottomSheetRef}
         animatedIndex={bottomSheetAnimatedIndex}
         animatedPosition={bottomSheetAnimatedPosition}
-        index={1}
         snapPoints={snapPoints}
         onChange={handleSheetChange}
         backgroundComponent={BottomSheetBackground}
@@ -119,56 +125,66 @@ export const BeachDetail: FC<BeachDetailProps> = ({
         enablePanDownToClose={true}
         topInset={insets.top + SHEET_TOP_PADDING}
       >
-        <Pressable
-          style={({ pressed }) => [
-            {
-              opacity: pressed ? 0.5 : 1,
-            },
-            styles.header,
-          ]}
-          onPress={() => {
-            if (indexRef.current === 0) {
-              bottomSheetRef.current?.snapToIndex(1);
-            } else {
-              bottomSheetRef.current?.snapToIndex(0);
-            }
-          }}
-        >
-          <View style={styles.headerInfo}>
-            <Text
-              style={{ color: foreground, fontSize: 16, fontWeight: "bold" }}
-            >
-              {selectedBeach?.name || ""}
+        {selectedBeach ? (
+          <Pressable
+            style={({ pressed }) => [
+              {
+                opacity: pressed ? 0.5 : 1,
+              },
+              styles.header,
+            ]}
+            onPress={() => {
+              if (indexRef.current === 0) {
+                bottomSheetRef.current?.snapToIndex(1);
+                onChange?.(1);
+              } else {
+                bottomSheetRef.current?.snapToIndex(0);
+                onChange?.(0);
+              }
+            }}
+          >
+            <View style={styles.headerInfo}>
+              <Text
+                style={{ color: foreground, fontSize: 16, fontWeight: "bold" }}
+              >
+                {selectedBeach?.name || ""}
+              </Text>
+              <WaterQualityIndicatorLabel
+                waterQuality={selectedBeach?.data[0].water_quality!}
+              />
+            </View>
+
+            <BeachDetailHeaderDivider />
+
+            {today && weatherType ? (
+              <BeachDetailHeaderInfo
+                emoji={getWeatherIcon(weatherType)}
+                value={`${today.air_temperature} °C`}
+              />
+            ) : null}
+
+            <BeachDetailHeaderDivider />
+
+            {today?.water_temperature ? (
+              <BeachDetailHeaderInfo
+                emoji="💧"
+                value={`${today?.water_temperature} °C`}
+              />
+            ) : null}
+
+            <Animated.View style={chevronAnimatedStyle}>
+              <IconButton>
+                <ChevronUp stroke={foreground} />
+              </IconButton>
+            </Animated.View>
+          </Pressable>
+        ) : (
+          <View style={styles.emptyHeader}>
+            <Text style={[styles.emptyHeaderLabel, { color: foreground }]}>
+              Select a beach
             </Text>
-            <WaterQualityIndicatorLabel
-              waterQuality={selectedBeach?.data[0].water_quality!}
-            />
           </View>
-
-          <BeachDetailHeaderDivider />
-
-          {today && weatherType ? (
-            <BeachDetailHeaderInfo
-              emoji={getWeatherIcon(weatherType)}
-              value={`${today.air_temperature} °C`}
-            />
-          ) : null}
-
-          <BeachDetailHeaderDivider />
-
-          {today?.water_temperature ? (
-            <BeachDetailHeaderInfo
-              emoji="💧"
-              value={`${today?.water_temperature} °C`}
-            />
-          ) : null}
-
-          <Animated.View style={chevronAnimatedStyle}>
-            <IconButton>
-              <ChevronUp stroke={foreground} />
-            </IconButton>
-          </Animated.View>
-        </Pressable>
+        )}
 
         <View style={styles.contentContainer}>
           <Animated.View style={{ opacity: bottomSheetAnimatedIndex }}>
@@ -190,7 +206,17 @@ export const BeachDetail: FC<BeachDetailProps> = ({
               {selectedBeach?.municipality_url && (
                 <Button
                   onPress={() => {
-                    Linking.openURL(selectedBeach?.municipality_url);
+                    // The `municipality_url` field has a format of
+                    // "<a target='_blank' href='http://www.ishoj.dk'>Hjemmeside</a>"
+                    // Therefore, we need to find the URL inside the href attribute
+                    const url =
+                      selectedBeach?.municipality_url.match(
+                        /href='(.*)'/
+                      )?.[1] || undefined;
+
+                    if (!url) return;
+
+                    Linking.openURL(url);
                   }}
                   style={styles.actionsBarAction}
                 >
@@ -227,6 +253,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     pointerEvents: "box-none",
+  },
+  emptyHeader: {
+    height: HEADER_HEIGHT,
+    paddingLeft: 24,
+    paddingRight: 16,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyHeaderLabel: {
+    fontSize: 16,
+    fontWeight: "500",
+    textAlign: "center",
+    opacity: 0.5,
   },
   header: {
     height: HEADER_HEIGHT,
