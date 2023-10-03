@@ -1,5 +1,6 @@
 import { Link } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { Position } from "geojson";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   SafeAreaView,
@@ -10,13 +11,13 @@ import {
 } from "react-native";
 import MapView, {
   MapPressEvent,
-  Marker,
   PROVIDER_GOOGLE,
   Region,
 } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import mapDarkStyle from "../assets/theme/map/dark.json";
 import mapLightStyle from "../assets/theme/map/light.json";
+import { BeachCluster } from "../src/components/BeachCluster";
 import {
   BeachDetail,
   HEADER_HEIGHT,
@@ -37,8 +38,6 @@ import { usePalette } from "../src/theme/usePalette";
 import { useBeachesData } from "../src/useBeachesData";
 import { useLocation } from "../src/useLocation";
 import { getCluster } from "../src/utils/getCluster";
-import { BeachCluster } from "../src/components/BeachCluster";
-import { Position } from "geojson";
 
 const initialCamera = {
   center: denmarkCenter,
@@ -202,18 +201,11 @@ export default () => {
       >
         {cluster &&
           markers.map((marker, index) => {
-            /**
-             * I don't know what's happening here, but it's not working
-             * unless the markers re-render every time.
-             */
-            // const key = Math.random();
-
             if (marker.properties.cluster) {
               const leaves = cluster.getLeaves(marker.id as number, Infinity);
 
               return (
                 <BeachCluster
-                  // key={key}
                   key={marker.id}
                   cluster={marker}
                   onPress={mapZoomIn(marker.geometry.coordinates)}
@@ -224,7 +216,6 @@ export default () => {
 
             return (
               <BeachMarker
-                // key={key}
                 key={`beach-${marker.properties.beach.id}`}
                 beach={marker.properties.beach as any}
               />
