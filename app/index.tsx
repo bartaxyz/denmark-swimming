@@ -1,6 +1,6 @@
 import { Link } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   SafeAreaView,
   StyleSheet,
@@ -8,7 +8,12 @@ import {
   useColorScheme,
   useWindowDimensions,
 } from "react-native";
-import MapView, { MapPressEvent, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, {
+  MapPressEvent,
+  Marker,
+  PROVIDER_GOOGLE,
+  Region,
+} from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import mapDarkStyle from "../assets/theme/map/dark.json";
 import mapLightStyle from "../assets/theme/map/light.json";
@@ -19,7 +24,11 @@ import {
 } from "../src/components/BeachDetail";
 import { BeachMarker } from "../src/components/BeachMarker";
 import { IconButton } from "../src/components/IconButton";
-import { denmarkNorthEast, denmarkSouthWest } from "../src/constants";
+import {
+  denmarkCenter,
+  denmarkNorthEast,
+  denmarkSouthWest,
+} from "../src/constants";
 import { Mark } from "../src/icons/Mark";
 import { Settings01 } from "../src/icons/Settings01";
 import { usePreferences } from "../src/state/usePreferences";
@@ -27,6 +36,16 @@ import { useSelectedBeach } from "../src/state/useSelectedBeach";
 import { usePalette } from "../src/theme/usePalette";
 import { useBeachesData } from "../src/useBeachesData";
 import { useLocation } from "../src/useLocation";
+import { getCluster } from "../src/utils/getCluster";
+import { BeachCluster } from "../src/components/BeachCluster";
+import { Position } from "geojson";
+
+const initialCamera = {
+  center: denmarkCenter,
+  zoom: 7,
+  heading: 0,
+  pitch: 0,
+};
 
 export default () => {
   const { background, foreground } = usePalette();
@@ -112,8 +131,10 @@ export default () => {
   };
 
   const handleSheetChange = (index: number) => {
-    sheetIndexRef.current = index;
-    recenterMap();
+    if (sheetIndexRef.current !== index) {
+      sheetIndexRef.current = index;
+      recenterMap();
+    }
   };
 
   const settingsButtonStyles = useMemo(
@@ -141,6 +162,21 @@ export default () => {
     }
   };
 
+  const mapZoomIn = (coordinates: Position) => async () => {
+    const camera = await mapViewRef.current?.getCamera();
+
+    mapViewRef.current?.animateCamera({
+      center: {
+        latitude: coordinates[1],
+        longitude: coordinates[0],
+      },
+      zoom: camera?.zoom ? camera.zoom + 2 : 8,
+    });
+  };
+
+  const [region, setRegion] = useState<Region | undefined>(undefined);
+  const { cluster, markers } = getCluster(beaches, region);
+
   return (
     <>
       <StatusBar style="auto" />
@@ -161,10 +197,39 @@ export default () => {
         customMapStyle={colorScheme === "dark" ? mapDarkStyle : mapLightStyle}
         provider={mapProvider}
         onPress={onMapPress}
+        initialCamera={initialCamera}
+        onRegionChangeComplete={setRegion}
       >
-        {beaches.map((beach) => (
-          <BeachMarker key={beach.id} beach={beach} />
-        ))}
+        {cluster &&
+          markers.map((marker, index) => {
+            /**
+             * I don't know what's happening here, but it's not working
+             * unless the markers re-render every time.
+             */
+            // const key = Math.random();
+
+            if (marker.properties.cluster) {
+              const leaves = cluster.getLeaves(marker.id as number, Infinity);
+
+              return (
+                <BeachCluster
+                  // key={key}
+                  key={marker.id}
+                  cluster={marker}
+                  onPress={mapZoomIn(marker.geometry.coordinates)}
+                  leaves={leaves}
+                />
+              );
+            }
+
+            return (
+              <BeachMarker
+                // key={key}
+                key={`beach-${marker.properties.beach.id}`}
+                beach={marker.properties.beach as any}
+              />
+            );
+          })}
       </MapView>
 
       <SafeAreaView style={styles.fillNoPointerEvents}>

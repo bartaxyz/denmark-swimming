@@ -56,22 +56,12 @@ export const IconButton = forwardRef<View, IconButtonProps>(
       buttonStyles.push(styles.buttonTransparent);
     }
 
-    /*   if (!onPress) {
-      return (
-        <View ref={ref} style={[buttonStyles, style]}>
-          {children}
-        </View>
-      );
-    } */
-
     return (
       <Pressable
         ref={ref}
-        onPress={onPress || (() => {})}
+        onPress={onPress || ((event) => event.preventDefault())}
         style={({ pressed }) => [
-          {
-            opacity: pressed ? 0.5 : 1,
-          },
+          { opacity: pressed ? 0.5 : 1 },
           buttonStyles,
           style,
         ]}

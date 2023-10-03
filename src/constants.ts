@@ -13,3 +13,14 @@ export const denmarkSouthWest = {
   latitude: boundingBoxOfDenmark.latitudeSouth,
   longitude: boundingBoxOfDenmark.longitudeWest,
 };
+
+export const denmarkCenter = {
+  latitude:
+    boundingBoxOfDenmark.latitudeSouth +
+    (boundingBoxOfDenmark.latitudeNorth - boundingBoxOfDenmark.latitudeSouth) /
+      2,
+  longitude:
+    boundingBoxOfDenmark.longitudeWest +
+    (boundingBoxOfDenmark.longitudeEast - boundingBoxOfDenmark.longitudeWest) /
+      2,
+};

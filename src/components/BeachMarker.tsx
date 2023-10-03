@@ -6,6 +6,7 @@ import Animated, { useSharedValue, withTiming } from "react-native-reanimated";
 import { useSelectedBeach } from "../../src/state/useSelectedBeach";
 import { Beach } from "../../types";
 import { usePalette } from "../theme/usePalette";
+import { useAnimatedMarker } from "../utils/useAnimatedMarker";
 import { WaterQualityIndicator } from "./WaterQualityIndicator";
 
 export interface BeachMarkerProps {
@@ -13,29 +14,13 @@ export interface BeachMarkerProps {
 }
 
 export const BeachMarker: FC<BeachMarkerProps> = ({ beach }) => {
+  const { background, foreground, isDark } = usePalette();
+
   const setSelectedBeachId = useSelectedBeach(
     (state) => state.setSelectedBeachId
   );
-
-  const scale = useSharedValue(1);
-  const opacity = useSharedValue(1);
-
-  const { background, foreground, isDark } = usePalette();
-
-  useEffect(() => {
-    useSelectedBeach.subscribe(({ selectedBeachId }) => {
-      if (selectedBeachId === beach.id) {
-        opacity.value = withTiming(1, { duration: 100 });
-        scale.value = withTiming(1.3, { duration: 100 });
-      } else if (selectedBeachId && selectedBeachId !== beach.id) {
-        opacity.value = withTiming(0.2, { duration: 100 });
-        scale.value = withTiming(1, { duration: 100 });
-      } else {
-        opacity.value = withTiming(1, { duration: 100 });
-        scale.value = withTiming(1, { duration: 100 });
-      }
-    });
-  });
+  const { scale, highlightOpacity, scaleStyle, highlightOpacityStyle } =
+    useAnimatedMarker(beach, true);
 
   const today = beach.data[0];
 
@@ -50,15 +35,17 @@ export const BeachMarker: FC<BeachMarkerProps> = ({ beach }) => {
       anchor={{ x: 0.5, y: 0.5 }}
       // tracksViewChanges={false}
     >
-      <Pressable style={{ padding: 4, paddingHorizontal: 8 }}>
+      <View style={{ padding: 4, paddingHorizontal: 8, position: "relative" }}>
         <Animated.View
-          style={{
-            borderColor: rgba(foreground, 0.1),
-            borderWidth: 1,
-            borderRadius: 16,
-            transform: [{ scale: scale }],
-            opacity,
-          }}
+          style={[
+            {
+              position: "relative",
+              borderColor: rgba(foreground, 0.1),
+              borderWidth: 1,
+              borderRadius: 16,
+            },
+            scaleStyle,
+          ]}
         >
           <View
             style={{
@@ -84,8 +71,27 @@ export const BeachMarker: FC<BeachMarkerProps> = ({ beach }) => {
               {today.water_temperature}°C
             </Text>
           </View>
+
+          {/* Highlight ring */}
+          <Animated.View
+            style={[
+              {
+                position: "absolute",
+                zIndex: 64,
+                borderRadius: 100,
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                borderWidth: 1,
+                borderColor: foreground,
+                opacity: 0,
+              },
+              highlightOpacityStyle,
+            ]}
+          />
         </Animated.View>
-      </Pressable>
+      </View>
     </Marker>
   );
 };

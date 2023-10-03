@@ -37,6 +37,11 @@ export default {
       },
       splash,
       userInterfaceStyle,
+      config: {
+        googleMaps: {
+          apiKey: "AIzaSyCjETzb2N3cq014e71xEqvTGX3pNQlLq4E",
+        },
+      },
     },
     web: {
       favicon: "./assets/favicon.png",
