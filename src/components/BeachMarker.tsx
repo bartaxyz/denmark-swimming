@@ -1,8 +1,8 @@
 import { rgba } from "polished";
-import { FC, useEffect } from "react";
-import { Pressable, Text, View } from "react-native";
+import { FC } from "react";
+import { Text, View } from "react-native";
 import { Marker } from "react-native-maps";
-import Animated, { useSharedValue, withTiming } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { useSelectedBeach } from "../../src/state/useSelectedBeach";
 import { Beach } from "../../types";
 import { usePalette } from "../theme/usePalette";
