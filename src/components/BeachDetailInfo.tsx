@@ -50,6 +50,10 @@ export const BeachDetailInfo = memo<BeachDetailInfoProps>(
         marginHorizontal: 4,
         backgroundColor: rgba(foreground, isDark ? 0.1 : 0),
         overflow: "hidden",
+        padding: 16,
+        paddingVertical: 12,
+        paddingBottom: 0,
+        marginBottom: 24,
       },
       header: {
         flexDirection: "row",
@@ -132,6 +136,11 @@ export const BeachDetailInfo = memo<BeachDetailInfoProps>(
           data={beach?.data}
           showsHorizontalScrollIndicator={false}
           scrollEventThrottle={16}
+          keyExtractor={(item) => item.date}
+          contentContainerStyle={{
+            paddingLeft: 20,
+            paddingRight: 20,
+          }}
           renderItem={({ item, index }) => {
             const date = new Date(item.date);
             const relativeDateLabel = formatRelative(date, new Date());
@@ -140,14 +149,7 @@ export const BeachDetailInfo = memo<BeachDetailInfoProps>(
             const formattedDate = format(date, "d. MMM. yyyy");
 
             return (
-              <ScrollView
-                style={styles.almostFullWidth}
-                contentContainerStyle={{
-                  padding: 16,
-                  paddingVertical: 12,
-                  paddingBottom: 0,
-                }}
-              >
+              <View style={styles.almostFullWidth}>
                 <View style={styles.header}>
                   <Text style={styles.title}>{relativeDateFirstWord}</Text>
                   <Text style={styles.title}>{formattedDate}</Text>
@@ -217,23 +219,9 @@ export const BeachDetailInfo = memo<BeachDetailInfoProps>(
                   <Text style={styles.infoLabel}>Precipitation</Text>
                   <Text style={styles.infoTitle}>{item.precipitation}</Text>
                 </View>
-              </ScrollView>
+              </View>
             );
           }}
-          pagingEnabled={true}
-          horizontal={true}
-          keyExtractor={(item) => item.date}
-          contentContainerStyle={{
-            paddingLeft: 20,
-            paddingRight: 20,
-          }}
-          snapToOffsets={beach?.data.map((_, index) => {
-            if (index === 0) {
-              return 0;
-            }
-
-            return index * (dimensions.width - 48 + 8);
-          })}
         />
       </View>
     );
