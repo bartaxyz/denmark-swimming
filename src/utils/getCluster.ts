@@ -2,6 +2,7 @@ import { Region } from "react-native-maps";
 import Supercluster from "supercluster";
 import { Beaches } from "../../types";
 import { getZoomLevel } from "./getZoomLevel";
+import { Platform } from "react-native";
 
 export const getCluster = (beaches?: Beaches, region?: Region) => {
   if (!beaches || beaches.length === 0 || !region) {
@@ -12,7 +13,7 @@ export const getCluster = (beaches?: Beaches, region?: Region) => {
   }
 
   const cluster = new Supercluster({
-    radius: 80,
+    radius: Platform.select({ android: 120, ios: 40 }),
     maxZoom: 16,
   });
 

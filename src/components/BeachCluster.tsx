@@ -1,60 +1,52 @@
 import { rgba } from "polished";
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
 import { Marker } from "react-native-maps";
-import Supercluster from "supercluster";
-import { usePalette } from "../theme/usePalette";
-import { WaterQualityIndicator } from "./WaterQualityIndicator";
-import { Beaches, WaterQuality } from "../../types";
 import Animated from "react-native-reanimated";
+import { Beaches, WaterQuality } from "../../types";
+import { usePalette } from "../theme/usePalette";
 import { useAnimatedMarker } from "../utils/useAnimatedMarker";
+import { WaterQualityIndicator } from "./WaterQualityIndicator";
+import { BeachClusterDatum } from "./BeachClusterDatum";
 
 export interface BeachClusterProps {
-  cluster:
-    | Supercluster.ClusterFeature<Supercluster.AnyProps>
-    | Supercluster.PointFeature<Supercluster.AnyProps>;
+  id?: string | number;
+  pointsCount: number;
+  coordinates: GeoJSON.Position;
+  waterQualityCounts: Record<WaterQuality, number>;
+  beachIds: number[];
   onPress: () => void;
-  leaves: Supercluster.PointFeature<Supercluster.AnyProps>[];
 }
 
 export const BeachCluster: FC<BeachClusterProps> = ({
-  cluster,
+  id,
+  pointsCount,
+  coordinates,
+  beachIds,
+  waterQualityCounts,
   onPress,
-  leaves,
 }) => {
+  const [longitude, latitude] = coordinates;
+
   const { background, foreground } = usePalette();
 
-  const beaches = leaves.map((leave) => leave.properties.beach) as Beaches;
-
-  const waterQualityCounts = beaches.reduce(
-    (acc, beach) => {
-      acc[beach.data[0].water_quality] += 1;
-      return acc;
-    },
-    {
-      [WaterQuality.Bad]: 0,
-      [WaterQuality.Closed]: 0,
-      [WaterQuality.Good]: 0,
-      [WaterQuality.Unknown]: 0,
-    }
+  const waterQualityKeys = useMemo(
+    () => Object.keys(waterQualityCounts) as WaterQuality[],
+    []
   );
 
-  const { highlightOpacity, highlightOpacityStyle } =
-    useAnimatedMarker(beaches);
+  const { highlightOpacityStyle } = useAnimatedMarker(beachIds);
 
   return (
     <Marker
-      identifier={`${cluster.id}`}
-      coordinate={{
-        latitude: cluster.geometry.coordinates[1],
-        longitude: cluster.geometry.coordinates[0],
-      }}
+      identifier={`${id}`}
+      coordinate={{ latitude, longitude }}
       onPress={onPress}
       anchor={{ x: 0.5, y: 0.5 }}
       // tracksViewChanges={false}
     >
       <Pressable style={{ padding: 4, paddingHorizontal: 8 }}>
-        <Animated.View
+        <View
           style={{
             position: "relative",
             borderColor: rgba(foreground, 0.1),
@@ -69,13 +61,12 @@ export const BeachCluster: FC<BeachClusterProps> = ({
               gap: 8,
               backgroundColor: background,
               // scale padding with the number of beaches in the cluster
-              padding: 2 + Math.log(cluster.properties.point_count) * 2,
-              paddingHorizontal:
-                8 + Math.log(cluster.properties.point_count) * 2,
+              padding: 2 + Math.log(pointsCount) * 2,
+              paddingHorizontal: 8 + Math.log(pointsCount) * 2,
               borderRadius: 16,
             }}
           >
-            {Object.keys(waterQualityCounts).map((key, index) => {
+            {waterQualityKeys.map((key, index) => {
               const waterQualityCount = waterQualityCounts[key as WaterQuality];
 
               if (waterQualityCount === 0) {
@@ -83,29 +74,11 @@ export const BeachCluster: FC<BeachClusterProps> = ({
               }
 
               return (
-                <View
+                <BeachClusterDatum
                   key={key}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
-                  <WaterQualityIndicator
-                    key={key}
-                    waterQuality={key as WaterQuality}
-                  />
-
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      fontWeight: "bold",
-                      color: foreground,
-                    }}
-                  >
-                    {waterQualityCount}
-                  </Text>
-                </View>
+                  waterQuality={key as WaterQuality}
+                  count={waterQualityCount}
+                />
               );
             })}
           </View>
@@ -128,7 +101,7 @@ export const BeachCluster: FC<BeachClusterProps> = ({
               highlightOpacityStyle,
             ]}
           />
-        </Animated.View>
+        </View>
       </Pressable>
     </Marker>
   );

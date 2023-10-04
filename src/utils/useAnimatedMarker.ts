@@ -13,15 +13,15 @@ const SCALE_UNSELECTED = 1;
 const HIGHLIGHT_OPACITY_SELECTED = 1;
 const HIGHLIGHT_OPACITY_UNSELECTED = 0;
 
-export const useAnimatedMarker = (beaches: Beach | Beaches, log?: boolean) => {
+export const useAnimatedMarker = (beachIds: number | number[]) => {
   const selectedBeachId = useMemo(
     () => useSelectedBeach.getState().selectedBeachId,
     []
   );
   const selected = (selectedBeachId?: number) => {
-    return Array.isArray(beaches)
-      ? beaches.some((beach) => beach.id === selectedBeachId)
-      : beaches.id === selectedBeachId;
+    return Array.isArray(beachIds)
+      ? beachIds.some((beach) => beach === selectedBeachId)
+      : beachIds === selectedBeachId;
   };
 
   const initialScale = selected(selectedBeachId)
@@ -75,8 +75,6 @@ export const useAnimatedMarker = (beaches: Beach | Beaches, log?: boolean) => {
   });
 
   return {
-    scale,
-    highlightOpacity,
     scaleStyle,
     highlightOpacityStyle,
   };

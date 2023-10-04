@@ -38,6 +38,8 @@ import { usePalette } from "../src/theme/usePalette";
 import { useBeachesData } from "../src/useBeachesData";
 import { useLocation } from "../src/useLocation";
 import { getCluster } from "../src/utils/getCluster";
+import { Beaches } from "../types";
+import { getWaterQualityCounts } from "../src/utils/getWaterQualityCounts";
 
 const initialCamera = {
   center: denmarkCenter,
@@ -200,24 +202,39 @@ export default () => {
         onRegionChangeComplete={setRegion}
       >
         {cluster &&
-          markers.map((marker, index) => {
+          markers.map((marker) => {
             if (marker.properties.cluster) {
-              const leaves = cluster.getLeaves(marker.id as number, Infinity);
+              const leavesData = cluster.getLeaves(
+                marker.id as number,
+                Infinity
+              );
+              const beaches = leavesData.map(
+                (leave) => leave.properties.beach
+              ) as Beaches;
+              const waterQualityCounts = getWaterQualityCounts(beaches);
 
               return (
                 <BeachCluster
                   key={marker.id}
-                  cluster={marker}
+                  id={marker.id}
+                  pointsCount={marker.properties.point_count}
+                  coordinates={marker.geometry.coordinates}
+                  beachIds={beaches.map((beach) => beach.id)}
+                  waterQualityCounts={waterQualityCounts}
                   onPress={mapZoomIn(marker.geometry.coordinates)}
-                  leaves={leaves}
                 />
               );
             }
 
+            const today = marker.properties.beach.data[0];
+
             return (
               <BeachMarker
                 key={`beach-${marker.properties.beach.id}`}
-                beach={marker.properties.beach as any}
+                beachId={marker.properties.beach.id}
+                coordinates={marker.geometry.coordinates}
+                todayWaterQuality={today.water_quality}
+                todayWaterTemperature={today.water_temperature}
               />
             );
           })}
