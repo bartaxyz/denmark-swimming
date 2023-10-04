@@ -1,5 +1,5 @@
 import { router, Slot } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { IconButton } from "../../src/components/IconButton";
 import { ArrowLeft } from "../../src/icons/ArrowLeft";
@@ -17,8 +17,13 @@ export default () => {
       backgroundColor: background,
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
+      justifyContent: Platform.select({
+        ios: "space-between",
+        android: "flex-start",
+      }),
+      gap: 12,
       padding: 16,
+      paddingVertical: 8,
     },
     title: {
       fontSize: 18,

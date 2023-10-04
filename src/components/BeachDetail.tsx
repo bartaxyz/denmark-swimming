@@ -1,34 +1,19 @@
-import BottomSheet from "@gorhom/bottom-sheet";
+import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { BottomSheetScrollViewMethods } from "@gorhom/bottom-sheet/lib/typescript/components/bottomSheetScrollable/types";
 import { BlurView } from "expo-blur";
 import { rgba } from "polished";
 import { FC, useEffect, useMemo, useRef } from "react";
-import {
-  Linking,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-} from "react-native-reanimated";
+import { Linking, Platform, StyleSheet, Text, View } from "react-native";
+import Animated, { useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ChevronUp } from "../icons/ChevronUp";
 import { Route } from "../icons/Route";
 import { useSelectedBeach } from "../state/useSelectedBeach";
 import { usePalette } from "../theme/usePalette";
 import { useBeachesData } from "../useBeachesData";
-import { getWeatherIcon } from "../utils/getWeatherIcon";
-import { BeachDetailHeaderDivider } from "./BeachDetailHeaderDivider";
-import { BeachDetailHeaderInfo } from "./BeachDetailHeaderInfo";
-import { Button } from "./Button";
-import { IconButton } from "./IconButton";
-import { WaterQualityIndicatorLabel } from "./WaterQualityIndicatorLabel";
+import { BeachDetailHeader, HEADER_HEIGHT } from "./BeachDetailHeader";
 import { BeachDetailInfo } from "./BeachDetailInfo";
+import { Button } from "./Button";
 
-export const HEADER_HEIGHT = 80;
 export const SHEET_TOP_PADDING = 256;
 
 export interface BeachDetailProps {
@@ -53,9 +38,9 @@ export const BeachDetail: FC<BeachDetailProps> = ({
 
   const selectedBeach = beaches.find((beach) => beach.id === selectedBeachId);
   const today = selectedBeach?.data[0];
-  const weatherType = today?.weather_type;
 
   const bottomSheetRef = useRef<BottomSheet>(null);
+  const bottomSheetScrollViewRef = useRef<BottomSheetScrollViewMethods>(null);
   const snapPoints = useMemo(
     () => [HEADER_HEIGHT + insets.bottom, "100%"],
     [insets]
@@ -67,6 +52,17 @@ export const BeachDetail: FC<BeachDetailProps> = ({
     indexRef.current = index;
     onChange?.(index);
   };
+
+  const scrollToTop = () => {
+    bottomSheetScrollViewRef.current?.scrollTo({
+      y: 0,
+      animated: true,
+    });
+  };
+
+  useEffect(() => {
+    scrollToTop();
+  }, [selectedBeach]);
 
   useEffect(() => {
     if (!bottomSheetRef.current) {
@@ -89,16 +85,6 @@ export const BeachDetail: FC<BeachDetailProps> = ({
   const bottomSheetAnimatedPositionInternal = useSharedValue(0);
   const bottomSheetAnimatedPosition =
     bottomSheetAnimatedPositionOverride || bottomSheetAnimatedPositionInternal;
-
-  const chevronAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        {
-          rotate: `${bottomSheetAnimatedIndex.value * 180}deg`,
-        },
-      ],
-    };
-  });
 
   const toggleBeachDetail = () => {
     if (indexRef.current === 0) {
@@ -136,50 +122,12 @@ export const BeachDetail: FC<BeachDetailProps> = ({
         topInset={insets.top + SHEET_TOP_PADDING}
       >
         {selectedBeach ? (
-          <Pressable
-            style={({ pressed }) => [
-              {
-                opacity: pressed ? 0.5 : 1,
-              },
-              styles.header,
-            ]}
-            onPress={toggleBeachDetail}
-          >
-            <View style={styles.headerInfo}>
-              <Text
-                style={{ color: foreground, fontSize: 16, fontWeight: "bold" }}
-              >
-                {selectedBeach?.name || ""}
-              </Text>
-              <WaterQualityIndicatorLabel
-                waterQuality={selectedBeach?.data[0].water_quality!}
-              />
-            </View>
-
-            <BeachDetailHeaderDivider />
-
-            {today && weatherType ? (
-              <BeachDetailHeaderInfo
-                emoji={getWeatherIcon(weatherType)}
-                value={`${today.air_temperature} °C`}
-              />
-            ) : null}
-
-            <BeachDetailHeaderDivider />
-
-            {today?.water_temperature ? (
-              <BeachDetailHeaderInfo
-                emoji="💧"
-                value={`${today?.water_temperature} °C`}
-              />
-            ) : null}
-
-            <Animated.View style={chevronAnimatedStyle}>
-              <IconButton onPress={toggleBeachDetail}>
-                <ChevronUp stroke={foreground} />
-              </IconButton>
-            </Animated.View>
-          </Pressable>
+          <BeachDetailHeader
+            toggleBeachDetail={toggleBeachDetail}
+            selectedBeach={selectedBeach}
+            bottomSheetAnimatedIndex={bottomSheetAnimatedIndex}
+            today={today}
+          />
         ) : (
           <View style={styles.emptyHeader}>
             <Text style={[styles.emptyHeaderLabel, { color: foreground }]}>
@@ -229,7 +177,25 @@ export const BeachDetail: FC<BeachDetailProps> = ({
           </Animated.View>
         </View>
 
-        <BeachDetailInfo beach={selectedBeach} />
+        <Animated.View
+          style={{
+            height: 1,
+            backgroundColor: rgba(foreground, 0.1),
+            marginLeft: 16,
+            marginRight: 16,
+            marginTop: 16,
+            opacity: bottomSheetAnimatedIndex,
+          }}
+        />
+
+        <BottomSheetScrollView
+          ref={bottomSheetScrollViewRef}
+          contentContainerStyle={{
+            paddingBottom: insets.bottom,
+          }}
+        >
+          <BeachDetailInfo beach={selectedBeach} />
+        </BottomSheetScrollView>
       </BottomSheet>
     </View>
   );
@@ -287,6 +253,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: 24,
     paddingTop: 0,
+    paddingBottom: 0,
     gap: 4,
   },
   actionsBar: {

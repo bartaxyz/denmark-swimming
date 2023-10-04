@@ -1,10 +1,11 @@
-import { rgba } from "polished";
+import { darken, lighten, rgba } from "polished";
 import { FC, PropsWithChildren } from "react";
 import {
   Platform,
   Pressable,
   PressableProps,
   StyleSheet,
+  SwitchProps,
   Text,
   View,
 } from "react-native";
@@ -51,7 +52,7 @@ const MapsProviderRow: FC<PropsWithChildren> = ({ children }) => {
       subtitle="Enabling Apple MapKit may improve performance. When disabled, Google Maps will be used."
       onPress={toggleMapsProvider}
     >
-      <Switch
+      <StyledSwitch
         value={mapsProvider === PROVIDER_DEFAULT}
         onValueChange={toggleMapsProvider}
       />
@@ -76,9 +77,31 @@ const PerformanceModeRow: FC<PropsWithChildren> = ({ children }) => {
       subtitle="Enabling performance mode will disable custom map markers to improve performance."
       onPress={togglePerformanceMode}
     >
-      <Switch value={performanceMode} onValueChange={togglePerformanceMode} />
+      <StyledSwitch
+        value={performanceMode}
+        onValueChange={togglePerformanceMode}
+      />
       {children}
     </Row>
+  );
+};
+
+const StyledSwitch: FC<SwitchProps> = ({ children, ...props }) => {
+  const { foreground, markers } = usePalette();
+
+  return (
+    <Switch
+      {...props}
+      thumbColor={Platform.select({
+        android: markers.good,
+      })}
+      trackColor={Platform.select({
+        android: {
+          true: rgba(markers.good, 0.25),
+          false: rgba(foreground, 0.1),
+        },
+      })}
+    />
   );
 };
 

@@ -18,11 +18,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import mapDarkStyle from "../assets/theme/map/dark.json";
 import mapLightStyle from "../assets/theme/map/light.json";
 import { BeachCluster } from "../src/components/BeachCluster";
-import {
-  BeachDetail,
-  HEADER_HEIGHT,
-  SHEET_TOP_PADDING,
-} from "../src/components/BeachDetail";
+import { BeachDetail, SHEET_TOP_PADDING } from "../src/components/BeachDetail";
+import { HEADER_HEIGHT } from "../src/components/BeachDetailHeader";
 import { BeachMarker } from "../src/components/BeachMarker";
 import { IconButton } from "../src/components/IconButton";
 import {
@@ -38,8 +35,8 @@ import { usePalette } from "../src/theme/usePalette";
 import { useBeachesData } from "../src/useBeachesData";
 import { useLocation } from "../src/useLocation";
 import { getCluster } from "../src/utils/getCluster";
-import { Beaches } from "../types";
 import { getWaterQualityCounts } from "../src/utils/getWaterQualityCounts";
+import { Beaches } from "../types";
 
 const initialCamera = {
   center: denmarkCenter,

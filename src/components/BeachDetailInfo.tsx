@@ -37,13 +37,7 @@ export const BeachDetailInfo = memo<BeachDetailInfoProps>(
     }, []);
 
     const styles = StyleSheet.create({
-      container: {
-        paddingBottom: inset.bottom,
-        flex: 1,
-        marginBottom: 16,
-      },
       almostFullWidth: {
-        width: dimensions.width - 48,
         borderColor: rgba(foreground, isDark ? 0.15 : 0.1),
         borderWidth: 1,
         borderRadius: 12,
@@ -51,14 +45,18 @@ export const BeachDetailInfo = memo<BeachDetailInfoProps>(
         backgroundColor: rgba(foreground, isDark ? 0.1 : 0),
         overflow: "hidden",
         padding: 16,
-        paddingVertical: 12,
         paddingBottom: 0,
-        marginBottom: 24,
+        marginBottom: 8,
+        marginLeft: 24,
+        marginRight: 24,
       },
       header: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
+        marginLeft: 40,
+        marginRight: 40,
+        marginTop: 24,
       },
       title: {
         fontSize: 12,
@@ -130,31 +128,22 @@ export const BeachDetailInfo = memo<BeachDetailInfoProps>(
     }
 
     return (
-      <View style={styles.container}>
-        <FlatList<Beach["data"][number]>
-          ref={flatListRef}
-          data={beach?.data}
-          showsHorizontalScrollIndicator={false}
-          scrollEventThrottle={16}
-          keyExtractor={(item) => item.date}
-          contentContainerStyle={{
-            paddingLeft: 20,
-            paddingRight: 20,
-          }}
-          renderItem={({ item, index }) => {
-            const date = new Date(item.date);
-            const relativeDateLabel = formatRelative(date, new Date());
-            const relativeDateFirstWord = relativeDateLabel.split(" ")[0];
+      <>
+        {beach?.data.map((item, index) => {
+          const date = new Date(item.date);
+          const relativeDateLabel = formatRelative(date, new Date());
+          const relativeDateFirstWord = relativeDateLabel.split(" ")[0];
 
-            const formattedDate = format(date, "d. MMM. yyyy");
+          const formattedDate = format(date, "d. MMM. yyyy");
 
-            return (
+          return (
+            <>
+              <View style={styles.header}>
+                <Text style={styles.title}>{relativeDateFirstWord}</Text>
+                <Text style={styles.title}>{formattedDate}</Text>
+              </View>
+
               <View style={styles.almostFullWidth}>
-                <View style={styles.header}>
-                  <Text style={styles.title}>{relativeDateFirstWord}</Text>
-                  <Text style={styles.title}>{formattedDate}</Text>
-                </View>
-
                 <View style={styles.waterQualityContainer}>
                   <WaterQualityIndicatorBox waterQuality={item.water_quality} />
                 </View>
@@ -220,10 +209,10 @@ export const BeachDetailInfo = memo<BeachDetailInfoProps>(
                   <Text style={styles.infoTitle}>{item.precipitation}</Text>
                 </View>
               </View>
-            );
-          }}
-        />
-      </View>
+            </>
+          );
+        })}
+      </>
     );
   },
   (prevProps, nextProps) => {
