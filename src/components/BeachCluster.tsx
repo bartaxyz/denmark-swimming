@@ -1,13 +1,18 @@
 import { rgba } from "polished";
 import { FC, useMemo } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Platform, Pressable, View } from "react-native";
 import { Marker } from "react-native-maps";
 import Animated from "react-native-reanimated";
-import { Beaches, WaterQuality } from "../../types";
+import { WaterQuality } from "../../types";
+import { usePreferences } from "../state/usePreferences";
 import { usePalette } from "../theme/usePalette";
-import { useAnimatedMarker } from "../utils/useAnimatedMarker";
-import { WaterQualityIndicator } from "./WaterQualityIndicator";
+import {
+  HIGHLIGHT_OPACITY_SELECTED,
+  HIGHLIGHT_OPACITY_UNSELECTED,
+  useAnimatedMarker,
+} from "../utils/useAnimatedMarker";
 import { BeachClusterDatum } from "./BeachClusterDatum";
+import { useStaticMarker } from "../utils/useStaticMarker";
 
 export interface BeachClusterProps {
   id?: string | number;
@@ -35,15 +40,17 @@ export const BeachCluster: FC<BeachClusterProps> = ({
     []
   );
 
+  const { mapMarker, isSelected } = useStaticMarker(beachIds);
   const { highlightOpacityStyle } = useAnimatedMarker(beachIds);
 
   return (
     <Marker
+      ref={mapMarker}
       identifier={`${id}`}
       coordinate={{ latitude, longitude }}
       onPress={onPress}
       anchor={{ x: 0.5, y: 0.5 }}
-      // tracksViewChanges={false}
+      tracksViewChanges={Platform.OS !== 'android'}
     >
       <Pressable style={{ padding: 4, paddingHorizontal: 8 }}>
         <View
@@ -96,7 +103,9 @@ export const BeachCluster: FC<BeachClusterProps> = ({
                 bottom: 0,
                 borderWidth: 1,
                 borderColor: foreground,
-                opacity: 0,
+                opacity: isSelected
+                  ? HIGHLIGHT_OPACITY_SELECTED
+                  : HIGHLIGHT_OPACITY_UNSELECTED,
               },
               highlightOpacityStyle,
             ]}

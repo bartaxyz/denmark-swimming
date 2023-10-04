@@ -50,11 +50,12 @@ const initialCamera = {
 
 export default () => {
   const { background, foreground } = usePalette();
-  const { location } = useLocation();
+  const { location, retryRequestPermissions } = useLocation();
   const { beaches } = useBeachesData();
   const mapViewRef = useRef<MapView>(null);
   const colorScheme = useColorScheme();
 
+  const performanceMode = usePreferences((state) => state.performanceMode);
   const setSelectedBeachId = useSelectedBeach(
     (state) => state.setSelectedBeachId
   );
@@ -66,12 +67,16 @@ export default () => {
   const locate = () => {
     if (location) {
       mapViewRef.current?.animateCamera({
+        heading: 0,
+        pitch: 0,
         center: {
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
         },
         zoom: 12,
       });
+    } else {
+      retryRequestPermissions();
     }
   };
 
@@ -176,7 +181,7 @@ export default () => {
   };
 
   const [region, setRegion] = useState<Region | undefined>(undefined);
-  const { cluster, markers } = getCluster(beaches, region);
+  const { cluster, markers } = getCluster(beaches, region, performanceMode);
 
   return (
     <>

@@ -2,13 +2,13 @@ import { format, formatRelative } from "date-fns";
 import { rgba } from "polished";
 import { memo, useEffect, useRef } from "react";
 import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { FlatList } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Beach } from "../../types";
 import { useSelectedBeach } from "../state/useSelectedBeach";
 import { usePalette } from "../theme/usePalette";
 import { getWeatherIcon } from "../utils/getWeatherIcon";
 import { WaterQualityIndicatorBox } from "./WaterQualityIndicatorBox";
-import { FlatList, ScrollView } from "react-native-gesture-handler";
 
 export interface BeachDetailInfoProps {
   beach?: Beach;

@@ -4,7 +4,11 @@ import { Beaches } from "../../types";
 import { getZoomLevel } from "./getZoomLevel";
 import { Platform } from "react-native";
 
-export const getCluster = (beaches?: Beaches, region?: Region) => {
+export const getCluster = (
+  beaches?: Beaches,
+  region?: Region,
+  performanceMode?: boolean
+) => {
   if (!beaches || beaches.length === 0 || !region) {
     return {
       markers: [],
@@ -13,7 +17,7 @@ export const getCluster = (beaches?: Beaches, region?: Region) => {
   }
 
   const cluster = new Supercluster({
-    radius: Platform.select({ android: 120, ios: 40 }),
+    radius: performanceMode ? 0 : 32,
     maxZoom: 16,
   });
 

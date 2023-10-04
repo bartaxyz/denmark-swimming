@@ -6,6 +6,8 @@ import { createJSONStorage, persist } from "zustand/middleware";
 interface PreferencesState {
   mapsProvider: Provider;
   setMapsProvider: (provider: Provider) => void;
+  performanceMode: boolean;
+  setPerformanceMode: (performanceMode: boolean) => void;
 }
 
 export const usePreferences = create<PreferencesState>()(
@@ -13,6 +15,9 @@ export const usePreferences = create<PreferencesState>()(
     (set) => ({
       mapsProvider: PROVIDER_GOOGLE,
       setMapsProvider: (provider) => set({ mapsProvider: provider }),
+      performanceMode: false,
+      setPerformanceMode: (performanceMode) =>
+        set({ performanceMode: performanceMode }),
     }),
     {
       name: "preferences",

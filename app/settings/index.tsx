@@ -25,6 +25,11 @@ export default () => {
             <Divider />
           </>
         )}
+
+        <>
+          <PerformanceModeRow />
+          <Divider />
+        </>
       </ScrollView>
     </>
   );
@@ -50,7 +55,28 @@ const MapsProviderRow: FC<PropsWithChildren> = ({ children }) => {
         value={mapsProvider === PROVIDER_DEFAULT}
         onValueChange={toggleMapsProvider}
       />
+      {children}
+    </Row>
+  );
+};
 
+const PerformanceModeRow: FC<PropsWithChildren> = ({ children }) => {
+  const performanceMode = usePreferences((state) => state.performanceMode);
+  const setPerformanceMode = usePreferences(
+    (state) => state.setPerformanceMode
+  );
+
+  const togglePerformanceMode = () => {
+    setPerformanceMode(!performanceMode);
+  };
+
+  return (
+    <Row
+      title="Performance Mode"
+      subtitle="Enabling performance mode will disable custom map markers to improve performance."
+      onPress={togglePerformanceMode}
+    >
+      <Switch value={performanceMode} onValueChange={togglePerformanceMode} />
       {children}
     </Row>
   );

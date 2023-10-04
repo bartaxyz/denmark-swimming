@@ -1,12 +1,20 @@
 import { rgba } from "polished";
-import { FC, memo } from "react";
-import { Text, View } from "react-native";
+import { memo } from "react";
+import { Platform, Text, View } from "react-native";
 import { Marker } from "react-native-maps";
 import Animated from "react-native-reanimated";
 import { useSelectedBeach } from "../../src/state/useSelectedBeach";
-import { Beach } from "../../types";
+import { Beach, WaterQuality } from "../../types";
+import { usePreferences } from "../state/usePreferences";
 import { usePalette } from "../theme/usePalette";
-import { useAnimatedMarker } from "../utils/useAnimatedMarker";
+import {
+  HIGHLIGHT_OPACITY_SELECTED,
+  HIGHLIGHT_OPACITY_UNSELECTED,
+  SCALE_SELECTED,
+  SCALE_UNSELECTED,
+  useAnimatedMarker,
+} from "../utils/useAnimatedMarker";
+import { useStaticMarker } from "../utils/useStaticMarker";
 import { WaterQualityIndicator } from "./WaterQualityIndicator";
 
 export interface BeachMarkerProps {
@@ -20,19 +28,44 @@ export const BeachMarker = memo<BeachMarkerProps>(
   ({ beachId, coordinates, todayWaterQuality, todayWaterTemperature }) => {
     const [longitude, latitude] = coordinates;
 
+    const { mapMarker, isSelected } = useStaticMarker(beachId);
     const { background, foreground, isDark } = usePalette();
     const { scaleStyle, highlightOpacityStyle } = useAnimatedMarker(beachId);
+    const performanceMode = usePreferences((state) => state.performanceMode);
     const setSelectedBeachId = useSelectedBeach(
       (state) => state.setSelectedBeachId
     );
 
+    if (performanceMode) {
+      return (
+        <Marker
+          identifier={`${beachId}`}
+          coordinate={{ latitude, longitude }}
+          onPress={() => setSelectedBeachId(beachId)}
+          anchor={{ x: 0.5, y: 0.5 }}
+          pinColor={
+            todayWaterQuality === WaterQuality.Bad
+              ? "red"
+              : todayWaterQuality === WaterQuality.Good
+              ? "green"
+              : todayWaterQuality === WaterQuality.Closed
+              ? "indigo"
+              : "orange"
+          }
+        />
+      );
+    }
+
     return (
       <Marker
+        ref={mapMarker}
         identifier={`${beachId}`}
         coordinate={{ latitude, longitude }}
-        onPress={() => setSelectedBeachId(beachId)}
+        onPress={() => {
+          setSelectedBeachId(beachId);
+        }}
         anchor={{ x: 0.5, y: 0.5 }}
-        // tracksViewChanges={false}
+        tracksViewChanges={Platform.OS !== 'android'}
       >
         <View
           style={{ padding: 4, paddingHorizontal: 8, position: "relative" }}
@@ -44,6 +77,9 @@ export const BeachMarker = memo<BeachMarkerProps>(
                 borderColor: rgba(foreground, 0.1),
                 borderWidth: 1,
                 borderRadius: 16,
+                transform: [
+                  { scale: isSelected ? SCALE_SELECTED : SCALE_UNSELECTED },
+                ],
               },
               scaleStyle,
             ]}
@@ -86,7 +122,9 @@ export const BeachMarker = memo<BeachMarkerProps>(
                   bottom: 0,
                   borderWidth: 1,
                   borderColor: foreground,
-                  opacity: 0,
+                  opacity: isSelected
+                    ? HIGHLIGHT_OPACITY_SELECTED
+                    : HIGHLIGHT_OPACITY_UNSELECTED,
                 },
                 highlightOpacityStyle,
               ]}

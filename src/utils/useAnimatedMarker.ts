@@ -7,11 +7,11 @@ import {
 import { Beach, Beaches } from "../../types";
 import { useSelectedBeach } from "../state/useSelectedBeach";
 
-const SCALE_SELECTED = 1.3;
-const SCALE_UNSELECTED = 1;
+export const SCALE_SELECTED = 1.3;
+export const SCALE_UNSELECTED = 1;
 
-const HIGHLIGHT_OPACITY_SELECTED = 1;
-const HIGHLIGHT_OPACITY_UNSELECTED = 0;
+export const HIGHLIGHT_OPACITY_SELECTED = 1;
+export const HIGHLIGHT_OPACITY_UNSELECTED = 0;
 
 export const useAnimatedMarker = (beachIds: number | number[]) => {
   const selectedBeachId = useMemo(
