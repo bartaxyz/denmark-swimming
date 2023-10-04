@@ -15,7 +15,7 @@ export default {
     name: "Swimming Water Quality Denmark",
     slug: "denmark-swimming",
     scheme: "denmark-swimming",
-    version: "1.0.0",
+    version: "1.1.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle,
