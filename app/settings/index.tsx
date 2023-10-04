@@ -15,6 +15,9 @@ import { usePreferences } from "../../src/state/usePreferences";
 import { usePalette } from "../../src/theme/usePalette";
 
 export default () => {
+  const mapsProvider = usePreferences((state) => state.mapsProvider);
+  const isGoogleMaps = mapsProvider === PROVIDER_GOOGLE;
+
   return (
     <>
       <Divider />
@@ -26,6 +29,18 @@ export default () => {
             <Divider />
           </>
         )}
+
+        <>
+          <View
+            style={{
+              opacity: isGoogleMaps ? 1 : 0.5,
+              pointerEvents: isGoogleMaps ? "auto" : "none",
+            }}
+          >
+            <DisableCustomMapStylesRow />
+          </View>
+          <Divider />
+        </>
 
         <>
           <PerformanceModeRow />
@@ -55,6 +70,33 @@ const MapsProviderRow: FC<PropsWithChildren> = ({ children }) => {
       <StyledSwitch
         value={mapsProvider === PROVIDER_DEFAULT}
         onValueChange={toggleMapsProvider}
+      />
+      {children}
+    </Row>
+  );
+};
+
+const DisableCustomMapStylesRow: FC<PropsWithChildren> = ({ children }) => {
+  const disableCustomMapStyles = usePreferences(
+    (state) => state.disableCustomMapStyles
+  );
+  const setDisableCustomMapStyles = usePreferences(
+    (state) => state.setDisableCustomMapStyles
+  );
+
+  const toggleDisableCustomMapStyles = () => {
+    setDisableCustomMapStyles(!disableCustomMapStyles);
+  };
+
+  return (
+    <Row
+      title="Disable Custom Map Styles"
+      subtitle="Enabling this option will disable custom monotone map styles."
+      onPress={toggleDisableCustomMapStyles}
+    >
+      <StyledSwitch
+        value={disableCustomMapStyles}
+        onValueChange={toggleDisableCustomMapStyles}
       />
       {children}
     </Row>
@@ -111,7 +153,7 @@ interface RowProps extends PressableProps {
   children?: React.ReactNode;
 }
 const Row: FC<RowProps> = ({ children, title, subtitle, onPress }) => {
-  const { foreground, isDark } = usePalette();
+  const { foreground } = usePalette();
   const styles = StyleSheet.create({
     row: {
       flexDirection: "row",

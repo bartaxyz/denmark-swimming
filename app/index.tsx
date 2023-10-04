@@ -57,6 +57,9 @@ export default () => {
     (state) => state.setSelectedBeachId
   );
   const mapProvider = usePreferences((state) => state.mapsProvider);
+  const disableCustomMapStyles = usePreferences(
+    (state) => state.disableCustomMapStyles
+  );
 
   const dimensions = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -197,7 +200,13 @@ export default () => {
         showsBuildings={true}
         showsIndoors={false}
         showsIndoorLevelPicker={false}
-        customMapStyle={colorScheme === "dark" ? mapDarkStyle : mapLightStyle}
+        customMapStyle={
+          disableCustomMapStyles
+            ? undefined
+            : colorScheme === "dark"
+            ? mapDarkStyle
+            : mapLightStyle
+        }
         provider={mapProvider}
         onPress={onMapPress}
         initialCamera={initialCamera}
