@@ -100,6 +100,16 @@ export const BeachDetail: FC<BeachDetailProps> = ({
     };
   });
 
+  const toggleBeachDetail = () => {
+    if (indexRef.current === 0) {
+      bottomSheetRef.current?.snapToIndex(1);
+      onChange?.(1);
+    } else {
+      bottomSheetRef.current?.snapToIndex(0);
+      onChange?.(0);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <BottomSheet
@@ -133,15 +143,7 @@ export const BeachDetail: FC<BeachDetailProps> = ({
               },
               styles.header,
             ]}
-            onPress={() => {
-              if (indexRef.current === 0) {
-                bottomSheetRef.current?.snapToIndex(1);
-                onChange?.(1);
-              } else {
-                bottomSheetRef.current?.snapToIndex(0);
-                onChange?.(0);
-              }
-            }}
+            onPress={toggleBeachDetail}
           >
             <View style={styles.headerInfo}>
               <Text
@@ -173,7 +175,7 @@ export const BeachDetail: FC<BeachDetailProps> = ({
             ) : null}
 
             <Animated.View style={chevronAnimatedStyle}>
-              <IconButton>
+              <IconButton onPress={toggleBeachDetail}>
                 <ChevronUp stroke={foreground} />
               </IconButton>
             </Animated.View>
