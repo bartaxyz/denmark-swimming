@@ -10,15 +10,21 @@ export const useStaticMarker = (beachIds: number | number[]) => {
     ? beachIds.some((beach) => beach === selectedBeachId)
     : beachIds === selectedBeachId;
 
+  const forceUpdate = () => {
+    mapMarker.current?.forceUpdate();
+    mapMarker.current?.redraw();
+  };
+
   useEffect(() => {
     /**
      * This is a hack to force the marker to redraw when the selected beach changes.
      * It requires a timeout, otherwise it'd be stuck in previous state.
+     *
+     * It's running multiple times as the first one might not necessarily catch the change.
      */
-    setTimeout(() => {
-      mapMarker.current?.forceUpdate();
-      mapMarker.current?.redraw();
-    }, 9);
+    setTimeout(forceUpdate, 9);
+    setTimeout(forceUpdate, 64);
+    setTimeout(forceUpdate, 256);
   }, [selectedBeachId]);
 
   return { mapMarker, isSelected };
