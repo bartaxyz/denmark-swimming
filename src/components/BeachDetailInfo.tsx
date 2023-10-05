@@ -1,6 +1,6 @@
 import { format, formatRelative } from "date-fns";
 import { rgba } from "polished";
-import { memo, useEffect, useRef } from "react";
+import React, { memo, useEffect, useRef } from "react";
 import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -137,7 +137,7 @@ export const BeachDetailInfo = memo<BeachDetailInfoProps>(
           const formattedDate = format(date, "d. MMM. yyyy");
 
           return (
-            <>
+            <React.Fragment key={index}>
               <View style={styles.header}>
                 <Text style={styles.title}>{relativeDateFirstWord}</Text>
                 <Text style={styles.title}>{formattedDate}</Text>
@@ -209,7 +209,7 @@ export const BeachDetailInfo = memo<BeachDetailInfoProps>(
                   <Text style={styles.infoTitle}>{item.precipitation}</Text>
                 </View>
               </View>
-            </>
+            </React.Fragment>
           );
         })}
       </>
