@@ -1,3 +1,5 @@
+import { version as packageVersion } from "./package.json";
+
 const userInterfaceStyle = "automatic";
 const splash = {
   image: "./assets/splash.png",
@@ -10,19 +12,37 @@ const splash = {
   },
 };
 
+/**
+ * Android version code will be generated from current timestamp
+ * to ensure that each build has unique version code.
+ */
+const versionCode = Math.floor(Date.now() / 1000 / 60 / 1);
+
+/**
+ * Version will be generated from package.json version and
+ * current timestamp to ensure that each build has unique version.
+ */
+const version = `${
+  /**
+   * Removes last version number, e.g. 1.2.3 -> 1.2
+   */
+  packageVersion.split(".").slice(0, -1).join(".")
+}.${versionCode}`;
+
 export default {
   expo: {
     name: "Swimming Water Quality Denmark",
     slug: "denmark-swimming",
     scheme: "denmark-swimming",
-    version: "1.1.0",
+    version,
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle,
     assetBundlePatterns: ["**/*"],
     ios: {
-      supportsTablet: true,
       bundleIdentifier: "com.ondrejbarta.denmarkswimming",
+      buildNumber: version,
+      supportsTablet: true,
       config: {
         googleMapsApiKey: "AIzaSyBPRgL0OzSfECEnv0la6U5wQVs8V8qk8ao",
       },
@@ -31,6 +51,7 @@ export default {
     },
     android: {
       package: "com.ondrejbarta.denmarkswimming",
+      versionCode,
       adaptiveIcon: {
         foregroundImage: "./assets/icon.png",
         backgroundColor: "#ffffff",
