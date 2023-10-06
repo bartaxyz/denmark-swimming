@@ -3,6 +3,9 @@ import { StatusBar } from "expo-status-bar";
 import { Position } from "geojson";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Alert,
+  Linking,
+  Platform,
   SafeAreaView,
   StyleSheet,
   View,
@@ -47,7 +50,11 @@ const initialCamera = {
 
 export default () => {
   const { background, foreground } = usePalette();
-  const { location, retryRequestPermissions } = useLocation();
+  const {
+    location,
+    status: locationStatus,
+    retryRequestPermissions,
+  } = useLocation();
   const { beaches } = useBeachesData();
   const mapViewRef = useRef<MapView>(null);
   const colorScheme = useColorScheme();
@@ -64,7 +71,23 @@ export default () => {
   const dimensions = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
-  const locate = () => {
+  const locate = async () => {
+    if (
+      !location &&
+      locationStatus === "denied" &&
+      !(await retryRequestPermissions())
+    ) {
+      Alert.alert(
+        "Enable location permissions",
+        "Please enable location permissions in your settings to use this feature",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Open settings", onPress: Linking.openSettings },
+        ]
+      );
+      return;
+    }
+
     if (location) {
       mapViewRef.current?.animateCamera({
         heading: 0,
@@ -96,25 +119,24 @@ export default () => {
       return;
     }
 
-    let coordinates = [];
+    let { latitude, longitude } = selectedBeach;
+    let coordinates = [{ latitude, longitude }];
 
     if (location) {
-      coordinates = [
-        {
-          latitude: selectedBeach.latitude,
-          longitude: selectedBeach.longitude,
-        },
-        {
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        },
-      ];
+      coordinates.push({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
     } else {
       // fit all beaches
-      coordinates = beaches.map((beach) => ({
-        latitude: beach.latitude,
-        longitude: beach.longitude,
-      }));
+      coordinates.push({
+        latitude: latitude - 0.02,
+        longitude: longitude - 0.02,
+      });
+      coordinates.push({
+        latitude: latitude + 0.02,
+        longitude: longitude + 0.02,
+      });
     }
 
     const index = sheetIndexRef.current;

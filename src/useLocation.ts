@@ -14,12 +14,14 @@ export const useLocation = () => {
     setStatus(locationStatus);
 
     if (locationStatus !== "granted") {
-      return;
+      return false;
     }
 
     let location = await Location.getCurrentPositionAsync({});
 
     setLocation(location);
+
+    return location;
   };
 
   useEffect(() => {
