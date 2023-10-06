@@ -77,7 +77,7 @@ export default {
         "expo-location",
         {
           locationAlwaysAndWhenInUsePermission:
-            "Allow $(PRODUCT_NAME) to use your location.",
+            "Your location makes it easier to find the water quality & tempearture of beaches near you.",
         },
       ],
     ],
