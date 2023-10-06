@@ -13,6 +13,7 @@ export const useStaticMarker = (beachIds: number | number[]) => {
   const forceUpdate = () => {
     mapMarker.current?.forceUpdate();
     mapMarker.current?.redraw();
+    mapMarker.current?.render();
   };
 
   useEffect(() => {
