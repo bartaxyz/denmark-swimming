@@ -44,7 +44,7 @@ export default {
       buildNumber: version,
       supportsTablet: true,
       config: {
-        googleMapsApiKey: "AIzaSyBPRgL0OzSfECEnv0la6U5wQVs8V8qk8ao",
+        googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY_IOS,
       },
       splash,
       userInterfaceStyle,
@@ -60,7 +60,7 @@ export default {
       userInterfaceStyle,
       config: {
         googleMaps: {
-          apiKey: "AIzaSyCjETzb2N3cq014e71xEqvTGX3pNQlLq4E",
+          apiKey: process.env.GOOGLE_MAPS_API_KEY_ANDROID,
         },
       },
     },
