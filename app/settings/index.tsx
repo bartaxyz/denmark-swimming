@@ -1,4 +1,4 @@
-import { darken, lighten, rgba } from "polished";
+import { rgba } from "polished";
 import { FC, PropsWithChildren } from "react";
 import {
   Platform,
@@ -11,7 +11,12 @@ import {
 } from "react-native";
 import { ScrollView, Switch } from "react-native-gesture-handler";
 import { PROVIDER_DEFAULT, PROVIDER_GOOGLE } from "react-native-maps";
-import { usePreferences } from "../../src/state/usePreferences";
+import { Button } from "../../src/components/Button";
+import {
+  TRANSPORTATION_MODES,
+  TransportationMode,
+  usePreferences,
+} from "../../src/state/usePreferences";
 import { usePalette } from "../../src/theme/usePalette";
 
 export default () => {
@@ -23,6 +28,11 @@ export default () => {
       <Divider />
 
       <ScrollView>
+        <>
+          <TransportationModeRow />
+          <Divider />
+        </>
+
         {Platform.OS === "ios" && (
           <>
             <MapsProviderRow />
@@ -51,6 +61,48 @@ export default () => {
   );
 };
 
+const TransportationModeRow: FC<PropsWithChildren> = ({ children }) => {
+  const transportationMode = usePreferences(
+    (state) => state.transportationMode
+  );
+  const setTransportationMode = usePreferences(
+    (state) => state.setTransportationMode
+  );
+
+  const transportationModes = Object.keys(
+    TRANSPORTATION_MODES
+  ) as TransportationMode[];
+
+  const styles = StyleSheet.create({
+    optionsContainer: {
+      width: "100%",
+      flexDirection: "row",
+      gap: 8,
+      flexWrap: "wrap",
+    },
+  });
+
+  return (
+    <Row
+      title="Preferred Transportation Mode"
+      subtitle="This option will be used when calculating routes, distances & duration of travel."
+      variant="column"
+    >
+      <View style={styles.optionsContainer}>
+        {transportationModes.map((option) => (
+          <Button
+            key={option}
+            onPress={() => setTransportationMode(option)}
+            variant={option === transportationMode ? "selected" : "normal"}
+          >
+            {TRANSPORTATION_MODES[option]}
+          </Button>
+        ))}
+      </View>
+    </Row>
+  );
+};
+
 const MapsProviderRow: FC<PropsWithChildren> = ({ children }) => {
   const mapsProvider = usePreferences((state) => state.mapsProvider);
   const setMapsProvider = usePreferences((state) => state.setMapsProvider);
@@ -71,7 +123,6 @@ const MapsProviderRow: FC<PropsWithChildren> = ({ children }) => {
         value={mapsProvider === PROVIDER_DEFAULT}
         onValueChange={toggleMapsProvider}
       />
-      {children}
     </Row>
   );
 };
@@ -98,7 +149,6 @@ const DisableCustomMapStylesRow: FC<PropsWithChildren> = ({ children }) => {
         value={disableCustomMapStyles}
         onValueChange={toggleDisableCustomMapStyles}
       />
-      {children}
     </Row>
   );
 };
@@ -123,7 +173,6 @@ const PerformanceModeRow: FC<PropsWithChildren> = ({ children }) => {
         value={performanceMode}
         onValueChange={togglePerformanceMode}
       />
-      {children}
     </Row>
   );
 };
@@ -151,13 +200,19 @@ interface RowProps extends PressableProps {
   title?: string;
   subtitle?: string;
   children?: React.ReactNode;
+  variant?: "row" | "column";
 }
-const Row: FC<RowProps> = ({ children, title, subtitle, onPress }) => {
+const Row: FC<RowProps> = ({
+  children,
+  title,
+  subtitle,
+  onPress,
+  variant = "row",
+}) => {
   const { foreground } = usePalette();
   const styles = StyleSheet.create({
     row: {
-      flexDirection: "row",
-      alignItems: "center",
+      flexDirection: variant === "column" ? "column" : "row",
       gap: 16,
       padding: 16,
       paddingHorizontal: 24,

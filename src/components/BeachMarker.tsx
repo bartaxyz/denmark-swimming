@@ -65,7 +65,7 @@ export const BeachMarker = memo<BeachMarkerProps>(
           setSelectedBeachId(beachId);
         }}
         anchor={{ x: 0.5, y: 0.5 }}
-        tracksViewChanges={Platform.OS !== 'android'}
+        tracksViewChanges={Platform.OS !== "android"}
       >
         <View
           style={{ padding: 4, paddingHorizontal: 8, position: "relative" }}

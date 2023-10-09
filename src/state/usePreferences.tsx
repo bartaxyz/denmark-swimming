@@ -3,6 +3,19 @@ import { PROVIDER_GOOGLE, Provider } from "react-native-maps";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
+export type TransportationMode =
+  | "driving"
+  | "walking"
+  | "bicycling"
+  | "transit";
+
+export const TRANSPORTATION_MODES: Record<TransportationMode, string> = {
+  driving: "Driving",
+  walking: "Walking",
+  bicycling: "Bicycling",
+  transit: "Transit",
+};
+
 interface PreferencesState {
   mapsProvider: Provider;
   setMapsProvider: (provider: Provider) => void;
@@ -10,6 +23,8 @@ interface PreferencesState {
   setDisableCustomMapStyles: (disableCustomMapStyles: boolean) => void;
   performanceMode: boolean;
   setPerformanceMode: (performanceMode: boolean) => void;
+  transportationMode: TransportationMode;
+  setTransportationMode: (transportationMode: TransportationMode) => void;
 }
 
 export const usePreferences = create<PreferencesState>()(
@@ -23,6 +38,9 @@ export const usePreferences = create<PreferencesState>()(
       performanceMode: false,
       setPerformanceMode: (performanceMode) =>
         set({ performanceMode: performanceMode }),
+      transportationMode: "bicycling",
+      setTransportationMode: (transportationMode) =>
+        set({ transportationMode: transportationMode }),
     }),
     {
       name: "preferences",

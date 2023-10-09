@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Linking,
-  Platform,
   SafeAreaView,
   StyleSheet,
   View,
@@ -24,7 +23,9 @@ import { BeachCluster } from "../src/components/BeachCluster";
 import { BeachDetail, SHEET_TOP_PADDING } from "../src/components/BeachDetail";
 import { HEADER_HEIGHT } from "../src/components/BeachDetailHeader";
 import { BeachMarker } from "../src/components/BeachMarker";
+import { DistanceIndicator } from "../src/components/DistanceIndicator";
 import { IconButton } from "../src/components/IconButton";
+import { Route } from "../src/components/Route";
 import {
   denmarkCenter,
   denmarkNorthEast,
@@ -35,10 +36,10 @@ import { Settings01 } from "../src/icons/Settings01";
 import { usePreferences } from "../src/state/usePreferences";
 import { useSelectedBeach } from "../src/state/useSelectedBeach";
 import { usePalette } from "../src/theme/usePalette";
-import { useBeachesData } from "../src/useBeachesData";
 import { useLocation } from "../src/useLocation";
 import { getCluster } from "../src/utils/getCluster";
 import { getWaterQualityCounts } from "../src/utils/getWaterQualityCounts";
+import { useDenmarkBeachesData } from "../src/utils/useDenmarkBeachesData";
 import { Beaches } from "../types";
 
 const initialCamera = {
@@ -55,7 +56,7 @@ export default () => {
     status: locationStatus,
     retryRequestPermissions,
   } = useLocation();
-  const { beaches } = useBeachesData();
+  const { beaches } = useDenmarkBeachesData();
   const mapViewRef = useRef<MapView>(null);
   const colorScheme = useColorScheme();
 
@@ -271,6 +272,8 @@ export default () => {
               />
             );
           })}
+
+        <Route />
       </MapView>
 
       <SafeAreaView style={styles.fillNoPointerEvents}>
@@ -288,6 +291,8 @@ export default () => {
       </SafeAreaView>
 
       <View style={styles.fillNoPointerEvents}>
+        <DistanceIndicator />
+
         <BeachDetail onChange={handleSheetChange} />
       </View>
     </>

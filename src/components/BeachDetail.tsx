@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Route } from "../icons/Route";
 import { useSelectedBeach } from "../state/useSelectedBeach";
 import { usePalette } from "../theme/usePalette";
-import { useBeachesData } from "../useBeachesData";
+import { useDenmarkBeachesData } from "../utils/useDenmarkBeachesData";
 import { BeachDetailHeader, HEADER_HEIGHT } from "./BeachDetailHeader";
 import { BeachDetailInfo } from "./BeachDetailInfo";
 import { Button } from "./Button";
@@ -27,10 +27,10 @@ export const BeachDetail: FC<BeachDetailProps> = ({
   bottomSheetAnimatedPosition: bottomSheetAnimatedPositionOverride,
   onChange,
 }) => {
-  const { foreground, background, isDark } = usePalette();
+  const { foreground, background } = usePalette();
   const insets = useSafeAreaInsets();
 
-  const { beaches } = useBeachesData();
+  const { beaches } = useDenmarkBeachesData();
   const selectedBeachId = useSelectedBeach((state) => state.selectedBeachId);
   const setSelectedBeachId = useSelectedBeach(
     (state) => state.setSelectedBeachId

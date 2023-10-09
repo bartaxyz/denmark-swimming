@@ -50,7 +50,7 @@ export const BeachCluster: FC<BeachClusterProps> = ({
       coordinate={{ latitude, longitude }}
       onPress={onPress}
       anchor={{ x: 0.5, y: 0.5 }}
-      tracksViewChanges={Platform.OS !== 'android'}
+      tracksViewChanges={Platform.OS !== "android"}
     >
       <Pressable style={{ padding: 4, paddingHorizontal: 8 }}>
         <View

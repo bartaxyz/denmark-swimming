@@ -1,13 +1,14 @@
+import { rgba } from "polished";
 import { FC } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { usePalette } from "../theme/usePalette";
-import { rgba } from "polished";
 
 export interface ButtonProps {
   children: React.ReactNode;
   onPress: () => void;
   leadingIcon?: React.ReactNode;
   trailingIcon?: React.ReactNode;
+  variant?: "normal" | "selected";
   style?: any;
 }
 
@@ -16,6 +17,7 @@ export const Button: FC<ButtonProps> = ({
   onPress,
   leadingIcon,
   trailingIcon,
+  variant = "normal",
   style,
 }) => {
   const { isDark, foreground } = usePalette();
@@ -26,7 +28,10 @@ export const Button: FC<ButtonProps> = ({
       padding: 8,
       paddingHorizontal: 16,
       borderRadius: 12,
-      borderColor: rgba(foreground, isDark ? 0.15 : 0.1),
+      borderColor: rgba(
+        foreground,
+        variant === "selected" ? 1 : isDark ? 0.15 : 0.1
+      ),
       borderWidth: 1,
       alignItems: "center",
       justifyContent: "center",

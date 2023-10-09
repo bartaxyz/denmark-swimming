@@ -1,14 +1,14 @@
+import { FC } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { Beach } from "../../types";
-import { FC } from "react";
+import { ChevronUp } from "../icons/ChevronUp";
 import { usePalette } from "../theme/usePalette";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { WaterQualityIndicatorLabel } from "./WaterQualityIndicatorLabel";
+import { getWeatherIcon } from "../utils/getWeatherIcon";
 import { BeachDetailHeaderDivider } from "./BeachDetailHeaderDivider";
 import { BeachDetailHeaderInfo } from "./BeachDetailHeaderInfo";
-import { getWeatherIcon } from "../utils/getWeatherIcon";
 import { IconButton } from "./IconButton";
-import { ChevronUp } from "../icons/ChevronUp";
+import { WaterQualityIndicatorLabel } from "./WaterQualityIndicatorLabel";
 
 export const HEADER_HEIGHT = 80;
 
@@ -59,6 +59,7 @@ export const BeachDetailHeader: FC<BeachDetailHeaderProps> = ({
         >
           {selectedBeach?.name || ""}
         </Text>
+
         <WaterQualityIndicatorLabel
           waterQuality={selectedBeach?.data[0].water_quality!}
         />
