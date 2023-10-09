@@ -14,7 +14,7 @@ import {
 import MapView, {
   MapPressEvent,
   PROVIDER_GOOGLE,
-  Region,
+  Region
 } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import mapDarkStyle from "../assets/theme/map/dark.json";
@@ -36,10 +36,10 @@ import { Settings01 } from "../src/icons/Settings01";
 import { usePreferences } from "../src/state/usePreferences";
 import { useSelectedBeach } from "../src/state/useSelectedBeach";
 import { usePalette } from "../src/theme/usePalette";
-import { useLocation } from "../src/useLocation";
 import { getCluster } from "../src/utils/getCluster";
 import { getWaterQualityCounts } from "../src/utils/getWaterQualityCounts";
 import { useDenmarkBeachesData } from "../src/utils/useDenmarkBeachesData";
+import { useLocation } from "../src/utils/useLocation";
 import { Beaches } from "../types";
 
 const initialCamera = {
@@ -129,7 +129,6 @@ export default () => {
         longitude: location.coords.longitude,
       });
     } else {
-      // fit all beaches
       coordinates.push({
         latitude: latitude - 0.02,
         longitude: longitude - 0.02,
@@ -141,20 +140,23 @@ export default () => {
     }
 
     const index = sheetIndexRef.current;
-    const padding = index === 1 ? 24 : 120;
+    const padding = index === 1 ? 40 : 80;
+    const top = padding + insets.top;
+
+    const edgePadding = {
+      top,
+      right: padding + insets.right,
+      bottom:
+        index === 0
+          ? HEADER_HEIGHT + insets.bottom + padding
+          : index === 1
+          ? dimensions.height - SHEET_TOP_PADDING - top // dimensions.height  - SHEET_TOP_PADDING + padding
+          : padding,
+      left: padding + insets.left,
+    };
 
     mapViewRef.current?.fitToCoordinates(coordinates, {
-      edgePadding: {
-        top: padding + insets.top,
-        right: padding + insets.right,
-        bottom:
-          index === 0
-            ? HEADER_HEIGHT + insets.bottom + padding
-            : index === 1
-            ? dimensions.height - SHEET_TOP_PADDING + padding
-            : padding + insets.bottom,
-        left: padding + insets.left,
-      },
+      edgePadding,
       animated: true,
     });
   };

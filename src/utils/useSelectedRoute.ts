@@ -1,7 +1,7 @@
 import Polyline from "@mapbox/polyline";
 import { useMemo } from "react";
 import { useSelectedBeach } from "../state/useSelectedBeach";
-import { useLocation } from "../useLocation";
+import { useLocation } from "./useLocation";
 import { useDenmarkBeachesData } from "./useDenmarkBeachesData";
 import { useFetchRoute } from "./useFetchRoute";
 import { usePreferences } from "../state/usePreferences";
