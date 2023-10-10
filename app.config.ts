@@ -1,5 +1,6 @@
 import { ExpoClientConfig } from "expo-constants/build/Constants.types";
 import { version as packageVersion } from "./package.json";
+import env from "./src/env";
 
 const userInterfaceStyle = "automatic";
 const splash = {
@@ -44,9 +45,7 @@ const expo: Omit<ExpoClientConfig, "bundleUrl"> = {
     bundleIdentifier: "com.ondrejbarta.denmarkswimming",
     buildNumber: version,
     supportsTablet: true,
-    config: {
-      googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY_IOS,
-    },
+    config: { googleMapsApiKey: env.googleMapsApiKeyIos },
     splash,
     userInterfaceStyle,
     infoPlist: {
@@ -65,20 +64,10 @@ const expo: Omit<ExpoClientConfig, "bundleUrl"> = {
     },
     splash,
     userInterfaceStyle,
-    config: {
-      googleMaps: {
-        apiKey: process.env.GOOGLE_MAPS_API_KEY_ANDROID,
-      },
-    },
+    config: { googleMaps: { apiKey: env.googleMapsApiKeyAndroid } },
   },
-  web: {
-    favicon: "./assets/favicon.png",
-  },
-  extra: {
-    eas: {
-      projectId: "a4e906d9-0345-4542-bf99-d44e10d445cf",
-    },
-  },
+  web: { favicon: "./assets/favicon.png" },
+  extra: { eas: { projectId: "a4e906d9-0345-4542-bf99-d44e10d445cf" } },
   plugins: [
     [
       "expo-location",
