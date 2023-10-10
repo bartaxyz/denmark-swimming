@@ -1,7 +1,7 @@
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
 
-export const useLocation = () => {
+export const useLocation = (options: { autoRequest?: boolean } = {}) => {
   const [status, setStatus] = useState<Location.PermissionStatus | null>(null);
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null
@@ -25,6 +25,10 @@ export const useLocation = () => {
   };
 
   useEffect(() => {
+    if (!options.autoRequest) {
+      return;
+    }
+
     (async () => {
       await requestPermissions();
     })();
