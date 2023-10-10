@@ -14,7 +14,8 @@ import {
 import MapView, {
   MapPressEvent,
   PROVIDER_GOOGLE,
-  Region
+  Region,
+  UrlTile,
 } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import mapDarkStyle from "../assets/theme/map/dark.json";
@@ -41,6 +42,7 @@ import { getWaterQualityCounts } from "../src/utils/getWaterQualityCounts";
 import { useDenmarkBeachesData } from "../src/utils/useDenmarkBeachesData";
 import { useLocation } from "../src/utils/useLocation";
 import { Beaches } from "../types";
+import env from "../src/env";
 
 const initialCamera = {
   center: denmarkCenter,
@@ -276,6 +278,24 @@ export default () => {
           })}
 
         <Route />
+
+        {/* <UrlTile
+          urlTemplate={`https://api.tomorrow.io/v4/map/tile/{z}/{x}/{y}/precipitationIntensity/${new Date().toISOString()}.png?apikey=${
+            env.tomorrowApiKey
+          }`}
+          maximumZ={19}
+          flipY={false}
+        /> */}
+        {/* <UrlTile
+          urlTemplate={`https://api.tomorrow.io/v4/map/tile/{z}/{x}/{y}/${"precipitationIntensity"}/${new Date().toISOString()}.png?apikey=${
+            env.tomorrowApiKey
+          }`}
+          maximumZ={19}
+          flipY={false}
+          style={{
+            opacity: 0.1
+          }}
+        /> */}
       </MapView>
 
       <SafeAreaView style={styles.fillNoPointerEvents}>

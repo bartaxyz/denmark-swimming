@@ -12,12 +12,14 @@ const env = {
     android: googleMapsApiKeyAndroid,
     ios: googleMapsApiKeyIos,
   }),
+  tomorrowApiKey: process.env.EXPO_PUBLIC_TOMORROW_API_KEY,
 };
 
 const envSchema = z.object({
   googleMapsApiKeyAndroid: z.string(),
   googleMapsApiKeyIos: z.string(),
   googleMapsApiKey: z.string(),
+  tomorrowApiKey: z.string(),
 });
 
 envSchema.parse(env);
