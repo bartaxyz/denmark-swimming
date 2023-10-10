@@ -45,7 +45,7 @@ const expo: Omit<ExpoClientConfig, "bundleUrl"> = {
     buildNumber: version,
     supportsTablet: true,
     config: {
-      googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY_IOS,
+      googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY_IOS,
     },
     splash,
     userInterfaceStyle,
@@ -67,18 +67,12 @@ const expo: Omit<ExpoClientConfig, "bundleUrl"> = {
     userInterfaceStyle,
     config: {
       googleMaps: {
-        apiKey: process.env.GOOGLE_MAPS_API_KEY_ANDROID,
+        apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY_ANDROID,
       },
     },
   },
-  web: {
-    favicon: "./assets/favicon.png",
-  },
-  extra: {
-    eas: {
-      projectId: "a4e906d9-0345-4542-bf99-d44e10d445cf",
-    },
-  },
+  web: { favicon: "./assets/favicon.png" },
+  extra: { eas: { projectId: "a4e906d9-0345-4542-bf99-d44e10d445cf" } },
   plugins: [
     [
       "expo-location",
