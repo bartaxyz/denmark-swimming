@@ -1,11 +1,21 @@
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
+import { create } from "zustand";
+
+const useLocationStore = create<{
+  location: Location.LocationObject | null;
+  setLocation: (location: Location.LocationObject) => void;
+  status: Location.PermissionStatus | null;
+  setStatus: (status: Location.PermissionStatus) => void;
+}>((set) => ({
+  location: null,
+  setLocation: (location) => set({ location }),
+  status: null,
+  setStatus: (status) => set({ status }),
+}));
 
 export const useLocation = (options: { autoRequest?: boolean } = {}) => {
-  const [status, setStatus] = useState<Location.PermissionStatus | null>(null);
-  const [location, setLocation] = useState<Location.LocationObject | null>(
-    null
-  );
+  const { location, status, setLocation, setStatus } = useLocationStore();
 
   const requestPermissions = async () => {
     let { status: locationStatus } =
