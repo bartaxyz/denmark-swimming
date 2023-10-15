@@ -3,7 +3,15 @@ import { BottomSheetScrollViewMethods } from "@gorhom/bottom-sheet/lib/typescrip
 import { BlurView } from "expo-blur";
 import { rgba } from "polished";
 import { FC, useEffect, useMemo, useRef } from "react";
-import { Linking, Platform, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Linking,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import Animated, { useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Route } from "../icons/Route";
@@ -30,7 +38,7 @@ export const BeachDetail: FC<BeachDetailProps> = ({
   const { foreground, background } = usePalette();
   const insets = useSafeAreaInsets();
 
-  const { beaches } = useDenmarkBeachesData();
+  const { beaches, isLoading, retry } = useDenmarkBeachesData();
   const selectedBeachId = useSelectedBeach((state) => state.selectedBeachId);
   const setSelectedBeachId = useSelectedBeach(
     (state) => state.setSelectedBeachId
@@ -115,10 +123,9 @@ export const BeachDetail: FC<BeachDetailProps> = ({
           marginRight: -1,
         }}
         handleHeight={0}
+        enableContentPanningGesture={!selectedBeachId}
         handleStyle={{ display: "none" }}
         handleIndicatorStyle={{ backgroundColor: foreground }}
-        onClose={() => setSelectedBeachId(undefined)}
-        enablePanDownToClose={true}
         topInset={insets.top + SHEET_TOP_PADDING}
       >
         {selectedBeach ? (
@@ -130,9 +137,13 @@ export const BeachDetail: FC<BeachDetailProps> = ({
           />
         ) : (
           <View style={styles.emptyHeader}>
-            <Text style={[styles.emptyHeaderLabel, { color: foreground }]}>
-              Select a beach
-            </Text>
+            {isLoading ? (
+              <ActivityIndicator />
+            ) : (
+              <Text style={[styles.emptyHeaderLabel, { color: foreground }]}>
+                Select a beach
+              </Text>
+            )}
           </View>
         )}
 

@@ -1,18 +1,30 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
-const useLocationStore = create<{
+interface LocationStoreState {
   location: Location.LocationObject | null;
   setLocation: (location: Location.LocationObject) => void;
   status: Location.PermissionStatus | null;
   setStatus: (status: Location.PermissionStatus) => void;
-}>((set) => ({
-  location: null,
-  setLocation: (location) => set({ location }),
-  status: null,
-  setStatus: (status) => set({ status }),
-}));
+}
+
+const useLocationStore = create<LocationStoreState>()(
+  persist(
+    (set) => ({
+      location: null,
+      setLocation: (location) => set({ location }),
+      status: null,
+      setStatus: (status) => set({ status }),
+    }),
+    {
+      name: "location-store",
+      storage: createJSONStorage(() => AsyncStorage),
+    }
+  )
+);
 
 export const useLocation = (options: { autoRequest?: boolean } = {}) => {
   const { location, status, setLocation, setStatus } = useLocationStore();

@@ -7,11 +7,19 @@ const denmarkBeachesFetcher: Fetcher<Beaches, string> = async (url) => {
   return data;
 };
 
-export const useDenmarkBeachesData = () => {
-  const { data: beaches = [], ...args } = useSWR<Beaches>(
-    "https://api.vandudsigten.dk/beaches",
-    denmarkBeachesFetcher
-  );
+const DENMARK_BEACHES_DATA_ENDPOINT = "https://api.vandudsigten.dk/beaches";
 
-  return { beaches, ...args };
+export const useDenmarkBeachesData = () => {
+  const {
+    data: beaches = [],
+    mutate,
+    ...args
+  } = useSWR<Beaches>(DENMARK_BEACHES_DATA_ENDPOINT, denmarkBeachesFetcher);
+
+  return {
+    beaches,
+    retry: () => mutate(undefined),
+    mutate,
+    ...args,
+  };
 };
