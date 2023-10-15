@@ -12,6 +12,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import MapView, {
+  EdgePadding,
   MapPressEvent,
   PROVIDER_GOOGLE,
   Region,
@@ -151,7 +152,7 @@ export default () => {
         index === 0
           ? HEADER_HEIGHT + insets.bottom + padding
           : index === 1
-          ? dimensions.height - SHEET_TOP_PADDING - top // dimensions.height  - SHEET_TOP_PADDING + padding
+          ? dimensions.height - SHEET_TOP_PADDING - insets.top + padding
           : padding,
       left: padding + insets.left,
     };
@@ -296,7 +297,9 @@ export default () => {
       <View style={styles.fillNoPointerEvents}>
         <LoadingIndicator />
         <DistanceIndicator />
+      </View>
 
+      <View style={styles.fillNoPointerEvents}>
         <BeachDetail onChange={handleSheetChange} />
       </View>
     </>

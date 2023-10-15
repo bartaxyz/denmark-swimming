@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { FC } from "react";
 import { TransportationMode, usePreferences } from "../state/usePreferences";
 import { useSelectedRoute } from "../utils/useSelectedRoute";
@@ -23,6 +24,9 @@ export const DistanceIndicator: FC = () => {
   return (
     <TopIndicator
       title={`${distance.text} • ${duration.text} ${labelMap[transportationMode]}`}
+      onPress={() => {
+        router.push("/settings");
+      }}
     />
   );
 };

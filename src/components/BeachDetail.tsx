@@ -38,11 +38,8 @@ export const BeachDetail: FC<BeachDetailProps> = ({
   const { foreground, background } = usePalette();
   const insets = useSafeAreaInsets();
 
-  const { beaches, isLoading, retry } = useDenmarkBeachesData();
+  const { beaches, isLoading } = useDenmarkBeachesData();
   const selectedBeachId = useSelectedBeach((state) => state.selectedBeachId);
-  const setSelectedBeachId = useSelectedBeach(
-    (state) => state.setSelectedBeachId
-  );
 
   const selectedBeach = beaches.find((beach) => beach.id === selectedBeachId);
   const today = selectedBeach?.data[0];
@@ -51,7 +48,7 @@ export const BeachDetail: FC<BeachDetailProps> = ({
   const bottomSheetScrollViewRef = useRef<BottomSheetScrollViewMethods>(null);
   const snapPoints = useMemo(
     () => [HEADER_HEIGHT + insets.bottom, "100%"],
-    [insets]
+    [insets.bottom]
   );
 
   const indexRef = useRef(0);
@@ -79,10 +76,6 @@ export const BeachDetail: FC<BeachDetailProps> = ({
 
     if (selectedBeach && indexRef.current < 0) {
       bottomSheetRef.current.snapToIndex(0);
-    }
-
-    if (!selectedBeach) {
-      bottomSheetRef.current.close();
     }
   }, [selectedBeach, bottomSheetRef]);
 
@@ -123,7 +116,8 @@ export const BeachDetail: FC<BeachDetailProps> = ({
           marginRight: -1,
         }}
         handleHeight={0}
-        enableContentPanningGesture={!selectedBeachId}
+        enableContentPanningGesture={!!selectedBeachId}
+        enableHandlePanningGesture={!!selectedBeachId}
         handleStyle={{ display: "none" }}
         handleIndicatorStyle={{ backgroundColor: foreground }}
         topInset={insets.top + SHEET_TOP_PADDING}

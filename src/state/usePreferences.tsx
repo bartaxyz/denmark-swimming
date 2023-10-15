@@ -13,7 +13,7 @@ export const TRANSPORTATION_MODES: Record<TransportationMode, string> = {
   driving: "Driving",
   walking: "Walking",
   bicycling: "Bicycling",
-  transit: "Transit",
+  transit: "Public transport",
 };
 
 interface PreferencesState {

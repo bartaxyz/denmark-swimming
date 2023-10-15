@@ -37,7 +37,7 @@ export const TopIndicator: FC<TopIndicatorProps> = ({
       justifyContent: "center",
       alignItems: "center",
       borderRadius: subtitle ? 40 : 24,
-      marginTop: 24,
+      marginTop: 16,
       borderColor: rgba(foreground, isDark ? 0.15 : 0.1),
       borderWidth: 1,
     },
@@ -47,10 +47,9 @@ export const TopIndicator: FC<TopIndicatorProps> = ({
     },
     headerInfo: {
       minHeight: 32,
-      padding: subtitle ? 8 : 4,
-      paddingLeft: subtitle ? 24 : 16,
-      paddingRight: subtitle ? 24 : 16,
-      gap: 2,
+      padding: 4,
+      paddingLeft: 16,
+      paddingRight: 16,
     },
     title: {
       display: "flex",
