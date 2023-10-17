@@ -2,7 +2,7 @@
 
 Native Android & iOS app providing real-time information on the water quality at various beaches across Denmark. Whether you're a local resident or a tourist, this app ensures you have the latest data at your fingertips to make informed decisions about where to go for a swim.
 
-[Google Play](https://play.google.com/store/apps/details?id=com.ondrejbarta.denmarkswimming) | [Apple App Store](https://apps.apple.com/us/app/swimming-water-quality-denmark/id6468695221)
+**Download the app →** [Google Play](https://play.google.com/store/apps/details?id=com.ondrejbarta.denmarkswimming) | [Apple App Store](https://apps.apple.com/us/app/swimming-water-quality-denmark/id6468695221)
 
 | ![2023-10-05 19 24 05](https://github.com/bartaxyz/denmark-swimming/assets/4202010/b7957ab2-400b-457b-af22-9499d4c5d4b0) | ![2023-10-05 19 26 54](https://github.com/bartaxyz/denmark-swimming/assets/4202010/9c6c6249-7a07-45cc-adca-712453441279) |
 |---|---|
