@@ -4,15 +4,14 @@ import { Platform, Pressable, View } from "react-native";
 import { Marker } from "react-native-maps";
 import Animated from "react-native-reanimated";
 import { WaterQuality } from "../../types";
-import { usePreferences } from "../state/usePreferences";
 import { usePalette } from "../theme/usePalette";
 import {
   HIGHLIGHT_OPACITY_SELECTED,
   HIGHLIGHT_OPACITY_UNSELECTED,
   useAnimatedMarker,
 } from "../utils/useAnimatedMarker";
-import { BeachClusterDatum } from "./BeachClusterDatum";
 import { useStaticMarker } from "../utils/useStaticMarker";
+import { BeachClusterDatum } from "./BeachClusterDatum";
 
 export interface BeachClusterProps {
   id?: string | number;
