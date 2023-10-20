@@ -37,7 +37,7 @@ export const BeachCluster: FC<BeachClusterProps> = ({
 
   const waterQualityKeys = useMemo(
     () => Object.keys(waterQualityCounts) as WaterQuality[],
-    []
+    [waterQualityCounts]
   );
 
   const { mapMarker, isSelected } = useStaticMarker(beachIds);
