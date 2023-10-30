@@ -11,7 +11,7 @@ Native Android & iOS app providing real-time information on the water quality at
 
 - **Real-Time Water Quality Data:** Get up-to-date information on water temperature, quality, and other relevant metrics.
 - **Beach Locator:** Find beaches near you and get directions.
-- **User-Friendly Interface:** Easy to navigate, even if you're not tech-savvy.
+- **User-Friendly Interface:** Easy to navigate, even for not tech-savvy users.
 - **Start where you left off:** The app remembers your last location and opens there automatically.
 
 ## Getting Started
