@@ -12,7 +12,6 @@ import {
   useWindowDimensions,
 } from "react-native";
 import MapView, {
-  EdgePadding,
   MapPressEvent,
   PROVIDER_GOOGLE,
   Region,
@@ -26,6 +25,7 @@ import { HEADER_HEIGHT } from "../src/components/BeachDetailHeader";
 import { BeachMarker } from "../src/components/BeachMarker";
 import { DistanceIndicator } from "../src/components/DistanceIndicator";
 import { IconButton } from "../src/components/IconButton";
+import { LoadingIndicator } from "../src/components/LoadingIndicator";
 import { Route } from "../src/components/Route";
 import {
   denmarkCenter,
@@ -42,7 +42,6 @@ import { getWaterQualityCounts } from "../src/utils/getWaterQualityCounts";
 import { useDenmarkBeachesData } from "../src/utils/useDenmarkBeachesData";
 import { useLocation } from "../src/utils/useLocation";
 import { Beaches } from "../types";
-import { LoadingIndicator } from "../src/components/LoadingIndicator";
 
 const initialCamera = {
   center: denmarkCenter,
@@ -125,7 +124,18 @@ export default () => {
     let { latitude, longitude } = selectedBeach;
     let coordinates = [{ latitude, longitude }];
 
-    if (location) {
+    /**
+     * If the distance between a beach & location is too large,
+     * zooming in is not practical.
+     */
+    const distance = location?.coords
+      ? Math.sqrt(
+          Math.pow(latitude - location.coords.latitude, 2) +
+            Math.pow(longitude - location.coords.longitude, 2)
+        )
+      : 0;
+
+    if (location && distance < 0.1) {
       coordinates.push({
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,

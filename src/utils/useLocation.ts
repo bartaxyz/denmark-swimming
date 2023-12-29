@@ -45,7 +45,8 @@ export const useLocation = (options: { autoRequest?: boolean } = {}) => {
 
     return location;
   };
-
+  
+  /* Request permissions on mount */
   useEffect(() => {
     if (!options.autoRequest) {
       return;
@@ -55,6 +56,28 @@ export const useLocation = (options: { autoRequest?: boolean } = {}) => {
       await requestPermissions();
     })();
   }, []);
+
+  /* Watch location position */
+  useEffect(() => {
+    if (status !== "granted") {
+      return;
+    }
+
+    let subscription = Location.watchPositionAsync(
+      {
+        accuracy: Location.Accuracy.Balanced,
+        timeInterval: 1000,
+        distanceInterval: 1,
+      },
+      (location) => {
+        setLocation(location);
+      }
+    );
+
+    return () => {
+      subscription.then((s) => s.remove());
+    };
+  }, [status]);
 
   return {
     location,
