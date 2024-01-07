@@ -166,7 +166,7 @@ export const BeachDetail: FC<BeachDetailProps> = ({
                     // Therefore, we need to find the URL inside the href attribute
                     const url =
                       selectedBeach?.municipality_url.match(
-                        /href='(.*)'/
+                        /href=["'](.*)["']/
                       )?.[1] || undefined;
 
                     if (!url) return;
