@@ -1,10 +1,10 @@
 import Polyline from "@mapbox/polyline";
 import { useMemo } from "react";
+import { usePreferences } from "../state/usePreferences";
 import { useSelectedBeach } from "../state/useSelectedBeach";
-import { useLocation } from "./useLocation";
 import { useDenmarkBeachesData } from "./useDenmarkBeachesData";
 import { useFetchRoute } from "./useFetchRoute";
-import { usePreferences } from "../state/usePreferences";
+import { useLocation } from "./useLocation";
 
 export const useSelectedRoute = () => {
   const selectedBeachId = useSelectedBeach((state) => state.selectedBeachId);

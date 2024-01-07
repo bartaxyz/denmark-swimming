@@ -1,6 +1,10 @@
 import useSWR, { Fetcher } from "swr";
 import env from "../env";
 import { TransportationMode } from "../state/usePreferences";
+import {
+  ThresholdType,
+  getPassedDistanceThreshold,
+} from "./getPassedDistanceThreshold";
 
 interface Distance {
   text: string;
@@ -45,7 +49,16 @@ export const useFetchRoute = (
   destination?: GeoJSON.Position,
   transportationMode?: TransportationMode
 ) => {
-  const shouldFetch = origin && destination;
+  /**
+   * Avoid fetching long routes. They're not practical for the user anyway.
+   */
+  const hasPassedDistanceThreshold = getPassedDistanceThreshold(
+    ThresholdType.Route,
+    origin,
+    destination
+  );
+
+  const shouldFetch = origin && destination && !hasPassedDistanceThreshold;
   const key = shouldFetch
     ? `https://maps.googleapis.com/maps/api/directions/json?origin=${origin[1]},${origin[0]}&destination=${destination[1]},${destination[0]}&key=${env.googleMapsApiKey}&mode=${transportationMode}`
     : null;

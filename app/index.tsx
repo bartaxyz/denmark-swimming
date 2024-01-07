@@ -38,6 +38,10 @@ import { usePreferences } from "../src/state/usePreferences";
 import { useSelectedBeach } from "../src/state/useSelectedBeach";
 import { usePalette } from "../src/theme/usePalette";
 import { getCluster } from "../src/utils/getCluster";
+import {
+  ThresholdType,
+  getPassedDistanceThreshold,
+} from "../src/utils/getPassedDistanceThreshold";
 import { getWaterQualityCounts } from "../src/utils/getWaterQualityCounts";
 import { useDenmarkBeachesData } from "../src/utils/useDenmarkBeachesData";
 import { useLocation } from "../src/utils/useLocation";
@@ -124,18 +128,22 @@ export default () => {
     let { latitude, longitude } = selectedBeach;
     let coordinates = [{ latitude, longitude }];
 
+    const locationPosition: GeoJSON.Position | undefined = location?.coords
+      ? [location.coords.longitude, location.coords.latitude]
+      : undefined;
+    const beachPosition: GeoJSON.Position = [longitude, latitude];
+
     /**
      * If the distance between a beach & location is too large,
      * zooming in is not practical.
      */
-    const distance = location?.coords
-      ? Math.sqrt(
-          Math.pow(latitude - location.coords.latitude, 2) +
-            Math.pow(longitude - location.coords.longitude, 2)
-        )
-      : 0;
+    const hasPassedDistanceThreshold = getPassedDistanceThreshold(
+      ThresholdType.Zoom,
+      locationPosition,
+      beachPosition
+    );
 
-    if (location && distance < 0.1) {
+    if (location && !hasPassedDistanceThreshold) {
       coordinates.push({
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
