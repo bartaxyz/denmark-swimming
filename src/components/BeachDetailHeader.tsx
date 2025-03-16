@@ -67,7 +67,7 @@ export const BeachDetailHeader: FC<BeachDetailHeaderProps> = ({
 
       <BeachDetailHeaderDivider />
 
-      {today && weatherType ? (
+      {today && (weatherType || today.air_temperature) ? (
         <BeachDetailHeaderInfo
           emoji={getWeatherIcon(weatherType)}
           value={`${today.air_temperature} °C`}

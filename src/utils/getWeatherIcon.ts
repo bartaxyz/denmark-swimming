@@ -18,6 +18,8 @@ const weatherIconMap: Record<WeatherType, string> = {
   [WeatherType.Fog]: "🌫",
 };
 
-export const getWeatherIcon = (weather: WeatherType) => {
+export const getWeatherIcon = (weather?: WeatherType) => {
+  if (!weather) return weatherIconMap[WeatherType.LightlyCloudy];
+
   return weatherIconMap[weather];
 };

@@ -54,6 +54,7 @@ const expo: Omit<ExpoClientConfig, "bundleUrl"> = {
         "Your location makes it easier to find the water quality & tempearture of beaches near you.",
       NSLocationAlwaysAndWhenInUseUsageDescription:
         "Your location makes it easier to find the water quality & tempearture of beaches near you.",
+      ITSAppUsesNonExemptEncryption: false,
     },
   },
   android: {
