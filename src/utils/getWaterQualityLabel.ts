@@ -1,5 +1,4 @@
 import { WaterQuality } from "../../types";
-import { usePalette } from "../theme/usePalette";
 
 export const getWaterQualityLabel = (waterQuality: WaterQuality) => {
   const waterQualityLabelMap: Record<WaterQuality, string> = {
@@ -9,5 +8,5 @@ export const getWaterQualityLabel = (waterQuality: WaterQuality) => {
     [WaterQuality.Closed]: "The beach is closed",
   };
 
-  return waterQualityLabelMap[waterQuality];
+  return waterQualityLabelMap[waterQuality] || "Unknown water quality";
 };

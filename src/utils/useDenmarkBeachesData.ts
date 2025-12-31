@@ -1,26 +1,23 @@
-import useSWR, { Fetcher } from "swr";
+import { router } from "expo-router";
 import { Beaches } from "../../types";
-
-const DENMARK_BEACHES_DATA_ENDPOINT =
-  "https://storage.googleapis.com/beach-data/data.json"; // "https://api.vandudsigten.dk/beaches";
-
-const denmarkBeachesFetcher: Fetcher<Beaches, string> = async (url) => {
-  const res = await fetch(url);
-  const data = await res.json();
-  return data;
-};
+import { useBeachDataStore } from "../state/useBeachDataStore";
 
 export const useDenmarkBeachesData = () => {
-  const {
-    data: beaches = [],
-    mutate,
-    ...args
-  } = useSWR<Beaches>(DENMARK_BEACHES_DATA_ENDPOINT, denmarkBeachesFetcher);
+  const cachedBeaches = useBeachDataStore((state) => state.beaches);
+  const isCacheValid = useBeachDataStore((state) => state.isCacheValid);
+  const clearCache = useBeachDataStore((state) => state.clearCache);
+
+  const forceRefresh = () => {
+    clearCache();
+    router.replace("/captcha");
+  };
 
   return {
-    beaches,
-    retry: () => mutate(undefined),
-    mutate,
-    ...args,
+    beaches: cachedBeaches,
+    isLoading: false,
+    error: undefined,
+    retry: forceRefresh,
+    forceRefresh,
+    isCacheValid: isCacheValid(),
   };
 };

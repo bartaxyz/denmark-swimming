@@ -12,7 +12,7 @@ import {
   Text,
   View,
 } from "react-native";
-import Animated, { useSharedValue } from "react-native-reanimated";
+import Animated, { SharedValue, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Route } from "../icons/Route";
 import { useSelectedBeach } from "../state/useSelectedBeach";
@@ -25,8 +25,8 @@ import { Button } from "./Button";
 export const SHEET_TOP_PADDING = 256;
 
 export interface BeachDetailProps {
-  bottomSheetAnimatedIndex?: Animated.SharedValue<number>;
-  bottomSheetAnimatedPosition?: Animated.SharedValue<number>;
+  bottomSheetAnimatedIndex?: SharedValue<number>;
+  bottomSheetAnimatedPosition?: SharedValue<number>;
   onChange?: (index: number) => void;
 }
 
@@ -42,7 +42,7 @@ export const BeachDetail: FC<BeachDetailProps> = ({
   const selectedBeachId = useSelectedBeach((state) => state.selectedBeachId);
 
   const selectedBeach = beaches.find((beach) => beach.id === selectedBeachId);
-  const today = selectedBeach?.data[0];
+  const today = selectedBeach?.data?.[0];
 
   const bottomSheetRef = useRef<BottomSheet>(null);
   const bottomSheetScrollViewRef = useRef<BottomSheetScrollViewMethods>(null);
@@ -115,7 +115,6 @@ export const BeachDetail: FC<BeachDetailProps> = ({
           marginLeft: -1,
           marginRight: -1,
         }}
-        handleHeight={0}
         enableContentPanningGesture={!!selectedBeachId}
         enableHandlePanningGesture={!!selectedBeachId}
         handleStyle={{ display: "none" }}

@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { useAnimatedStyle } from "react-native-reanimated";
-import { Beach } from "../../types";
+import Animated, { SharedValue, useAnimatedStyle } from "react-native-reanimated";
+import { Beach, WaterQuality } from "../../types";
 import { ChevronUp } from "../icons/ChevronUp";
 import { usePalette } from "../theme/usePalette";
 import { getWeatherIcon } from "../utils/getWeatherIcon";
@@ -14,7 +14,7 @@ export const HEADER_HEIGHT = 80;
 
 export interface BeachDetailHeaderProps {
   toggleBeachDetail: () => void;
-  bottomSheetAnimatedIndex: Animated.SharedValue<number>;
+  bottomSheetAnimatedIndex: SharedValue<number>;
   selectedBeach: Beach;
   today?: Beach["data"][number];
 }
@@ -61,7 +61,7 @@ export const BeachDetailHeader: FC<BeachDetailHeaderProps> = ({
         </Text>
 
         <WaterQualityIndicatorLabel
-          waterQuality={selectedBeach?.data[0].water_quality!}
+          waterQuality={selectedBeach?.data?.[0]?.water_quality ?? WaterQuality.Unknown}
         />
       </View>
 

@@ -11,5 +11,5 @@ export const useWaterQualityColor = (waterQuality: WaterQuality) => {
     [WaterQuality.Closed]: markers.closed,
   };
 
-  return waterQualityColorMap[waterQuality];
+  return waterQualityColorMap[waterQuality] || markers.unknown;
 };

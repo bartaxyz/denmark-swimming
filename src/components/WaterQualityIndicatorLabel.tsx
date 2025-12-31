@@ -2,6 +2,7 @@ import { FC } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { WaterQuality } from "../../types";
 import { getWaterQualityLabel } from "../utils/getWaterQualityLabel";
+import { usePalette } from "../theme/usePalette";
 import { useWaterQualityColor } from "../utils/useWaterQualityColor";
 import { WaterQualityIndicator } from "./WaterQualityIndicator";
 
@@ -12,7 +13,9 @@ export interface WaterQualityIndicatorLabelProps {
 export const WaterQualityIndicatorLabel: FC<
   WaterQualityIndicatorLabelProps
 > = ({ waterQuality }) => {
-  const waterQualityColor = useWaterQualityColor(waterQuality);
+  const { foreground, markers } = usePalette();
+  const rawColor = useWaterQualityColor(waterQuality);
+  const waterQualityColor = rawColor || markers.unknown || foreground;
 
   const styles = StyleSheet.create({
     container: {

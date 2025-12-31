@@ -13,8 +13,12 @@ export interface WaterQualityIndicatorBoxProps {
 export const WaterQualityIndicatorBox: FC<WaterQualityIndicatorBoxProps> = ({
   waterQuality,
 }) => {
-  const { foreground, isDark } = usePalette();
-  const waterQualityColor = useWaterQualityColor(waterQuality);
+  const { foreground, isDark, markers } = usePalette();
+  // Always ensure we have a valid color, fallback to unknown marker color or foreground
+  const rawColor = useWaterQualityColor(waterQuality);
+  const waterQualityColor = rawColor && typeof rawColor === 'string' && rawColor.length > 0
+    ? rawColor
+    : (markers.unknown || foreground);
 
   const styles = StyleSheet.create({
     container: {

@@ -123,13 +123,13 @@ export const BeachDetailInfo = memo<BeachDetailInfoProps>(
       },
     });
 
-    if (!beach) {
+    if (!beach || !beach.data || beach.data.length === 0) {
       return null;
     }
 
     return (
       <>
-        {beach?.data.map((item, index) => {
+        {beach.data.map((item, index) => {
           const date = new Date(item.date);
           const relativeDateLabel = formatRelative(date, new Date());
           const relativeDateFirstWord = relativeDateLabel.split(" ")[0];

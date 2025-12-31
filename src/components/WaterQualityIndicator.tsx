@@ -12,8 +12,9 @@ export interface WaterQualityIndicatorProps {
 export const WaterQualityIndicator: FC<WaterQualityIndicatorProps> = ({
   waterQuality,
 }) => {
-  const { foreground } = usePalette();
-  const waterQualityColor = useWaterQualityColor(waterQuality);
+  const { foreground, markers } = usePalette();
+  const rawColor = useWaterQualityColor(waterQuality);
+  const waterQualityColor = rawColor || markers.unknown || foreground;
 
   return (
     <View

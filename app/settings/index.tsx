@@ -18,6 +18,7 @@ import {
   usePreferences,
 } from "../../src/state/usePreferences";
 import { usePalette } from "../../src/theme/usePalette";
+import { useDenmarkBeachesData } from "../../src/utils/useDenmarkBeachesData";
 
 export default () => {
   const mapsProvider = usePreferences((state) => state.mapsProvider);
@@ -54,6 +55,11 @@ export default () => {
 
         <>
           <PerformanceModeRow />
+          <Divider />
+        </>
+
+        <>
+          <RefreshDataRow />
           <Divider />
         </>
       </ScrollView>
@@ -173,6 +179,25 @@ const PerformanceModeRow: FC<PropsWithChildren> = ({ children }) => {
         value={performanceMode}
         onValueChange={togglePerformanceMode}
       />
+    </Row>
+  );
+};
+
+const RefreshDataRow: FC = () => {
+  const { forceRefresh, isCacheValid } = useDenmarkBeachesData();
+  const { foreground } = usePalette();
+
+  return (
+    <Row
+      title="Refresh Beach Data"
+      subtitle={
+        isCacheValid
+          ? "Data is current. Tap to fetch latest data from source."
+          : "Data may be outdated. Tap to refresh."
+      }
+      onPress={forceRefresh}
+    >
+      <Text style={{ color: foreground, fontSize: 14 }}>Refresh</Text>
     </Row>
   );
 };

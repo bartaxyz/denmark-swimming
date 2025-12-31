@@ -1,7 +1,8 @@
-import { Link } from "expo-router";
+import { Link, Redirect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Position } from "geojson";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useBeachDataStore } from "../src/state/useBeachDataStore";
 import {
   Alert,
   Linking,
@@ -55,6 +56,10 @@ const initialCamera = {
 };
 
 export default () => {
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
+  const isCacheValid = useBeachDataStore((state) => state.isCacheValid);
+  const cachedBeaches = useBeachDataStore((state) => state.beaches);
+  const lastFetchTimestamp = useBeachDataStore((state) => state.lastFetchTimestamp);
   const { background, foreground } = usePalette();
   const {
     location,
@@ -76,6 +81,40 @@ export default () => {
 
   const dimensions = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const sheetIndexRef = useRef(0);
+  const [region, setRegion] = useState<Region | undefined>(undefined);
+
+  useEffect(() => {
+    if (mapProvider === PROVIDER_GOOGLE) {
+      mapViewRef.current?.setMapBoundaries(denmarkNorthEast, denmarkSouthWest);
+    }
+  }, [mapViewRef, mapProvider]);
+
+  const settingsButtonStyles = useMemo(
+    () => ({
+      backgroundColor: background,
+      position: "absolute" as const,
+      bottom: 24 + HEADER_HEIGHT,
+      left: 24,
+    }),
+    [background]
+  );
+
+  const locateButtonStyles = useMemo(
+    () => ({
+      backgroundColor: background,
+      position: "absolute" as const,
+      bottom: 24 + HEADER_HEIGHT,
+      right: 24,
+    }),
+    [background]
+  );
+
+  // Check if cache is valid - AFTER all hooks
+  const hasValidCache = cachedBeaches.length > 0 && lastFetchTimestamp && isCacheValid();
+  if (!hasValidCache) {
+    return <Redirect href="/captcha" />;
+  }
 
   const locate = async () => {
     if (
@@ -108,14 +147,6 @@ export default () => {
       retryRequestPermissions();
     }
   };
-
-  useEffect(() => {
-    if (mapProvider === PROVIDER_GOOGLE) {
-      mapViewRef.current?.setMapBoundaries(denmarkNorthEast, denmarkSouthWest);
-    }
-  }, [mapViewRef, mapProvider]);
-
-  const sheetIndexRef = useRef(0);
 
   const recenterMap = () => {
     const selectedBeachId = useSelectedBeach.getState().selectedBeachId;
@@ -188,25 +219,6 @@ export default () => {
     }
   };
 
-  const settingsButtonStyles = useMemo(
-    () => ({
-      backgroundColor: background,
-      position: "absolute",
-      bottom: 24 + HEADER_HEIGHT,
-      left: 24,
-    }),
-    [background]
-  );
-  const locateButtonStyles = useMemo(
-    () => ({
-      backgroundColor: background,
-      position: "absolute",
-      bottom: 24 + HEADER_HEIGHT,
-      right: 24,
-    }),
-    [background]
-  );
-
   const onMapPress = (event: MapPressEvent) => {
     if (event.nativeEvent.action !== "marker-press") {
       setSelectedBeachId();
@@ -225,7 +237,6 @@ export default () => {
     });
   };
 
-  const [region, setRegion] = useState<Region | undefined>(undefined);
   const { cluster, markers } = getCluster(beaches, region, performanceMode);
 
   return (
@@ -282,15 +293,22 @@ export default () => {
               );
             }
 
-            const today = marker.properties.beach.data[0];
+            const beach = marker.properties.beach;
+            const today = beach.data?.[0];
+
+            // Skip beaches without data
+            if (!today) {
+              console.warn(`[Map] Beach ${beach.id} (${beach.name}) has no data array`);
+              return null;
+            }
 
             return (
               <BeachMarker
-                key={`beach-${marker.properties.beach.id}`}
-                beachId={marker.properties.beach.id}
+                key={`beach-${beach.id}`}
+                beachId={beach.id}
                 coordinates={marker.geometry.coordinates}
                 todayWaterQuality={today.water_quality}
-                todayWaterTemperature={today.water_temperature}
+                todayWaterTemperature={today.water_temperature ?? "?"}
               />
             );
           })}

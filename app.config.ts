@@ -1,4 +1,4 @@
-import { ExpoClientConfig } from "expo-constants/build/Constants.types";
+import { ExpoConfig } from "expo/config";
 import { version as packageVersion } from "./package.json";
 
 const userInterfaceStyle = "automatic";
@@ -30,7 +30,7 @@ const version = `${
   packageVersion.split(".").slice(0, -1).join(".")
 }.${versionCode}`;
 
-const expo: Omit<ExpoClientConfig, "bundleUrl"> = {
+const expo: ExpoConfig = {
   name: "Swimming Water Quality Denmark",
   slug: "denmark-swimming",
   scheme: "denmark-swimming",

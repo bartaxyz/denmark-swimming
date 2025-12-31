@@ -3,7 +3,8 @@ import { Beaches, WaterQuality } from "../../types";
 export const getWaterQualityCounts = (beaches: Beaches) => {
   const waterQualityCounts = beaches.reduce(
     (acc, beach) => {
-      acc[beach.data[0].water_quality] += 1;
+      const quality = beach.data?.[0]?.water_quality ?? WaterQuality.Unknown;
+      acc[quality] += 1;
       return acc;
     },
     {
