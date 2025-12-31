@@ -29,7 +29,10 @@ interface ApiDatum {
   windDirectionDisplay: number;
 }
 
-// Map numeric water quality to string enum
+/**
+ * Map numeric water quality values from the API to WaterQuality enum.
+ * API values: 1 = Bad, 2 = Good, 3 = Unknown, 4 = Closed
+ */
 function mapWaterQuality(value: number): WaterQuality {
   switch (value) {
     case 1:
@@ -44,13 +47,43 @@ function mapWaterQuality(value: number): WaterQuality {
   }
 }
 
-// Format number to string with comma decimal separator
+/**
+ * Format a number to string with one decimal place and comma separator.
+ */
 function formatNumber(value: number | undefined | null): string {
   if (value === undefined || value === null) return "";
   return value.toFixed(1).replace(".", ",");
 }
 
-// Transform a single datum
+/**
+ * Convert wind direction in degrees to cardinal direction string.
+ * 0° = N, 45° = NE, 90° = E, etc.
+ */
+function degreesToCardinal(degrees: number): string {
+  const cardinals = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+  const index = Math.round((degrees % 360) / 45) % 8;
+  return cardinals[index];
+}
+
+/**
+ * Get wind direction display value.
+ * If windDirectionDisplay > 360, it's an invalid/placeholder value from the API,
+ * so we convert the actual wind direction to a cardinal direction instead.
+ */
+function getWindDirectionDisplay(windDirection: number, windDirectionDisplay: number): string {
+  if (windDirectionDisplay > 360) {
+    return degreesToCardinal(windDirection);
+  }
+  return Math.round(windDirectionDisplay).toString();
+}
+
+/**
+ * Transform a single day's data from API format to app format.
+ *
+ * Note: weather_type and precipitation are not provided by the new API.
+ * We default to PartlyCloudy and empty string respectively.
+ * These fields may need to be fetched from a weather API in the future.
+ */
 function transformDatum(apiDatum: ApiDatum): Datum {
   return {
     date: apiDatum.date,
@@ -61,21 +94,41 @@ function transformDatum(apiDatum: ApiDatum): Datum {
     air_temperature: Math.round(apiDatum.airTemperature).toString(),
     wind_speed: Math.round(apiDatum.windSpeed).toString(),
     wind_direction: Math.round(apiDatum.windDirection).toString(),
-    wind_direction_display: apiDatum.windDirectionDisplay > 360
-      ? ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][Math.round((apiDatum.windDirection % 360) / 45) % 8]
-      : Math.round(apiDatum.windDirectionDisplay).toString(),
-    weather_type: WeatherType.PartlyCloudy, // Default - not provided by new API
-    precipitation: "", // Not provided by new API
+    wind_direction_display: getWindDirectionDisplay(apiDatum.windDirection, apiDatum.windDirectionDisplay),
+    weather_type: WeatherType.PartlyCloudy,
+    precipitation: "",
   };
 }
 
-// Transform a single beach
+/**
+ * Sanitize a URL to prevent XSS attacks.
+ * Only allows http and https protocols.
+ */
+function sanitizeUrl(url: string | null | undefined): string {
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return parsed.href;
+    }
+    return "";
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Transform a single beach from API format to app format.
+ */
 function transformBeach(apiBeach: ApiBeach): Beach {
+  const sanitizedMunicipalityUrl = sanitizeUrl(apiBeach.municipalityUrl);
+
   return {
     id: apiBeach.id,
     municipality: apiBeach.municipalityName,
-    municipality_url: apiBeach.municipalityUrl
-      ? `<a target='_blank' href='${apiBeach.municipalityUrl}'>Hjemmeside</a>`
+    // Store the sanitized URL with HTML wrapper for backwards compatibility
+    municipality_url: sanitizedMunicipalityUrl
+      ? `<a target='_blank' href='${sanitizedMunicipalityUrl}'>Hjemmeside</a>`
       : "",
     name: apiBeach.beachName,
     description: apiBeach.description,
@@ -88,7 +141,10 @@ function transformBeach(apiBeach: ApiBeach): Beach {
   };
 }
 
-// Transform the full API response
+/**
+ * Transform the full API response from badevand.dk format to app format.
+ * Converts camelCase fields to snake_case and maps numeric enums to string enums.
+ */
 export function transformApiResponse(apiBeaches: ApiBeach[]): Beaches {
   return apiBeaches.map(transformBeach);
 }

@@ -11,10 +11,8 @@ import {
 } from "react-native";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 import { Beaches } from "../../types";
+import { API_URL, WEBSITE_URL } from "../constants/api";
 import { usePalette } from "../theme/usePalette";
-
-const API_URL = "https://badevand.dk/api/next/beaches";
-const WEBSITE_URL = "https://badevand.dk";
 
 interface CaptchaWebViewProps {
   onDataReceived: (data: Beaches) => void;
@@ -102,7 +100,6 @@ const INJECTED_JAVASCRIPT = `
 
     XMLHttpRequest.prototype.send = function(...args) {
       const xhr = this;
-      const originalOnLoad = xhr.onload;
       const originalOnReadyStateChange = xhr.onreadystatechange;
 
       xhr.onreadystatechange = function() {

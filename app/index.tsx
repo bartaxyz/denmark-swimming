@@ -58,8 +58,6 @@ const initialCamera = {
 export default () => {
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   const isCacheValid = useBeachDataStore((state) => state.isCacheValid);
-  const cachedBeaches = useBeachDataStore((state) => state.beaches);
-  const lastFetchTimestamp = useBeachDataStore((state) => state.lastFetchTimestamp);
   const { background, foreground } = usePalette();
   const {
     location,
@@ -111,8 +109,8 @@ export default () => {
   );
 
   // Check if cache is valid - AFTER all hooks
-  const hasValidCache = cachedBeaches.length > 0 && lastFetchTimestamp && isCacheValid();
-  if (!hasValidCache) {
+  // isCacheValid() already checks if beaches exist and timestamp is fresh
+  if (!isCacheValid()) {
     return <Redirect href="/captcha" />;
   }
 

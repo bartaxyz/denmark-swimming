@@ -4,20 +4,18 @@ import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CaptchaWebView } from "../src/components/CaptchaWebView";
+import { API_URL } from "../src/constants/api";
 import { useBeachDataStore } from "../src/state/useBeachDataStore";
 import { usePalette } from "../src/theme/usePalette";
 import { transformApiResponse } from "../src/utils/transformApiResponse";
-
-const API_URL = "https://badevand.dk/api/next/beaches";
 
 export default function CaptchaScreen() {
   const { background, foreground, isDark } = usePalette();
   const insets = useSafeAreaInsets();
   const setBeaches = useBeachDataStore((state) => state.setBeaches);
   const [needsCaptcha, setNeedsCaptcha] = useState<boolean | null>(null);
-  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  // Try direct fetch first
+  // Try direct fetch first, fall back to WebView with captcha if it fails
   useEffect(() => {
     const tryDirectFetch = async () => {
       try {
@@ -30,8 +28,8 @@ export default function CaptchaScreen() {
 
         if (response.ok) {
           const data = await response.json();
-          if (Array.isArray(data) && data.length > 0 && data[0].id !== undefined) {
-            // Transform the API response to match expected types
+          // Validate response has expected structure
+          if (Array.isArray(data) && data.length > 0 && data[0].id !== undefined && data[0].beachName) {
             const transformedData = transformApiResponse(data);
             setBeaches(transformedData);
             router.replace("/");
@@ -43,7 +41,6 @@ export default function CaptchaScreen() {
         setNeedsCaptcha(true);
       } catch (error) {
         console.warn("Direct fetch failed, trying WebView:", error);
-        setFetchError(String(error));
         setNeedsCaptcha(true);
       }
     };

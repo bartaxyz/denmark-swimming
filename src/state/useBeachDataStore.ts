@@ -2,8 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { Beaches } from "../../types";
-
-const CACHE_DURATION_MS = 1000 * 60 * 60 * 6; // 6 hours
+import { CACHE_DURATION_MS } from "../constants/api";
 
 interface BeachDataState {
   beaches: Beaches;
