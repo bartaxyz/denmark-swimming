@@ -8,7 +8,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "eas:android:preview:local": "eas build -p android --profile preview --local",
-    "eas:ios:preview": "eas build -p ios --profile preview"
+    "eas:ios:preview": "eas build -p ios --profile preview",
+    "eas:android:production": "eas build -p android --profile production",
+    "eas:ios:production": "eas build -p ios --profile production"
   },
   "dependencies": {
     "@expo/metro-runtime": "^6.1.2",
