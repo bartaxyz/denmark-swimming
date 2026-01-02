@@ -7,10 +7,10 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "eas:android:preview:local": "eas build -p android --profile preview --local",
-    "eas:ios:preview": "eas build -p ios --profile preview",
-    "eas:android:production": "eas build -p android --profile production",
-    "eas:ios:production": "eas build -p ios --profile production"
+    "eas:android": "eas build -p android --profile production --auto-submit",
+    "eas:ios": "eas build -p ios --profile production --auto-submit",
+    "eas:android:build-only": "eas build -p android --profile production",
+    "eas:ios:build-only": "eas build -p ios --profile production"
   },
   "dependencies": {
     "@expo/metro-runtime": "^6.1.2",

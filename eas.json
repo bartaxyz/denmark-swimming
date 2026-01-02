@@ -16,6 +16,17 @@
     },
     "production": {}
   },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "ondrejbarta@icloud.com",
+        "ascAppId": "6468695221"
+      },
+      "android": {
+        "track": "production"
+      }
+    }
+  },
   "cli": {
     "promptToConfigurePushNotifications": false
   }

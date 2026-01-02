@@ -1,7 +1,7 @@
-import { Link, Redirect } from "expo-router";
+import { Link } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Position } from "geojson";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useBeachDataStore } from "../src/state/useBeachDataStore";
 import {
   Alert,
@@ -20,8 +20,10 @@ import MapView, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import mapDarkStyle from "../assets/theme/map/dark.json";
 import mapLightStyle from "../assets/theme/map/light.json";
+import { BackgroundDataLoader } from "../src/components/BackgroundDataLoader";
 import { BeachCluster } from "../src/components/BeachCluster";
 import { BeachDetail, SHEET_TOP_PADDING } from "../src/components/BeachDetail";
+import { CaptchaModal } from "../src/components/CaptchaModal";
 import { HEADER_HEIGHT } from "../src/components/BeachDetailHeader";
 import { BeachMarker } from "../src/components/BeachMarker";
 import { DistanceIndicator } from "../src/components/DistanceIndicator";
@@ -57,7 +59,7 @@ const initialCamera = {
 
 export default () => {
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
-  const isCacheValid = useBeachDataStore((state) => state.isCacheValid);
+  const [showCaptchaModal, setShowCaptchaModal] = useState(false);
   const { background, foreground } = usePalette();
   const {
     location,
@@ -108,11 +110,14 @@ export default () => {
     [background]
   );
 
-  // Check if cache is valid - AFTER all hooks
-  // isCacheValid() already checks if beaches exist and timestamp is fresh
-  if (!isCacheValid()) {
-    return <Redirect href="/captcha" />;
-  }
+  // Callbacks for BackgroundDataLoader
+  const handleNeedsCaptcha = useCallback(() => {
+    setShowCaptchaModal(true);
+  }, []);
+
+  const handleCaptchaSuccess = useCallback(() => {
+    setShowCaptchaModal(false);
+  }, []);
 
   const locate = async () => {
     if (
@@ -240,6 +245,17 @@ export default () => {
   return (
     <>
       <StatusBar style="auto" />
+
+      <BackgroundDataLoader
+        onNeedsCaptcha={handleNeedsCaptcha}
+        onSuccess={handleCaptchaSuccess}
+      />
+
+      <CaptchaModal
+        visible={showCaptchaModal}
+        onClose={() => setShowCaptchaModal(false)}
+        onSuccess={handleCaptchaSuccess}
+      />
 
       <MapView
         ref={mapViewRef}

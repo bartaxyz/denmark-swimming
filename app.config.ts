@@ -41,6 +41,7 @@ const expo: ExpoConfig = {
   assetBundlePatterns: ["**/*"],
   splash,
   ios: {
+    icon: "./assets/icon.icon",
     bundleIdentifier: "com.ondrejbarta.denmarkswimming",
     buildNumber: version,
     supportsTablet: true,
