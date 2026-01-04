@@ -1,6 +1,6 @@
 import { rgba } from "polished";
 import { FC, useMemo } from "react";
-import { Platform, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { Marker } from "react-native-maps";
 import Animated from "react-native-reanimated";
 import { WaterQuality } from "../../types";
@@ -49,7 +49,7 @@ export const BeachCluster: FC<BeachClusterProps> = ({
       coordinate={{ latitude, longitude }}
       onPress={onPress}
       anchor={{ x: 0.5, y: 0.5 }}
-      tracksViewChanges={Platform.OS !== "android"}
+      tracksViewChanges={false}
     >
       <Pressable style={{ padding: 4, paddingHorizontal: 8 }}>
         <View

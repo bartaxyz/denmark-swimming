@@ -8,8 +8,16 @@ export const Route: FC = memo(
     const { foreground } = usePalette();
     const { polylineCoordinates } = useSelectedRoute();
 
-    if (!polylineCoordinates) {
-      return null;
+    // Don't return null - return an empty polyline instead to avoid
+    // react-native-maps Google provider crash on iOS when inserting nil subviews
+    if (!polylineCoordinates || polylineCoordinates.length === 0) {
+      return (
+        <MapPolyline
+          coordinates={[]}
+          strokeColor="transparent"
+          strokeWidth={0}
+        />
+      );
     }
 
     return (

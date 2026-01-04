@@ -2,9 +2,11 @@ import { useEffect, useRef } from "react";
 import { useSelectedBeach } from "../state/useSelectedBeach";
 import { MapMarker } from "react-native-maps";
 import { usePreferences } from "../state/usePreferences";
+import { InteractionManager } from "react-native";
 
 export const useStaticMarker = (beachIds: number | number[]) => {
   const mapMarker = useRef<MapMarker>(null);
+  const timeoutRefs = useRef<NodeJS.Timeout[]>([]);
 
   const selectedBeachId = useSelectedBeach((state) => state.selectedBeachId);
   const isSelected = Array.isArray(beachIds)
@@ -17,24 +19,33 @@ export const useStaticMarker = (beachIds: number | number[]) => {
         return;
       }
 
-      mapMarker.current?.forceUpdate();
+      // Only call redraw, which is the safest method
+      // Avoid forceUpdate and render which can cause race conditions
       mapMarker.current?.redraw();
-      mapMarker.current?.render();
     } catch (error) {
-      console.error(error);
+      // Silently ignore - marker may have been unmounted
     }
   };
 
   useEffect(() => {
+    // Clear any pending timeouts from previous renders
+    timeoutRefs.current.forEach(clearTimeout);
+    timeoutRefs.current = [];
+
     /**
-     * This is a hack to force the marker to redraw when the selected beach changes.
-     * It requires a timeout, otherwise it'd be stuck in previous state.
-     *
-     * It's running multiple times as the first one might not necessarily catch the change.
+     * Wait for interactions to complete before forcing a redraw.
+     * This prevents race conditions with React Native's view reconciliation.
      */
-    setTimeout(forceUpdate, 9);
-    setTimeout(forceUpdate, 64);
-    setTimeout(forceUpdate, 256);
+    InteractionManager.runAfterInteractions(() => {
+      // Use a single delayed redraw instead of multiple rapid calls
+      const timeout = setTimeout(forceUpdate, 100);
+      timeoutRefs.current.push(timeout);
+    });
+
+    return () => {
+      timeoutRefs.current.forEach(clearTimeout);
+      timeoutRefs.current = [];
+    };
   }, [selectedBeachId]);
 
   return { mapMarker, isSelected };

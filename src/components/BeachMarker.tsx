@@ -1,6 +1,6 @@
 import { rgba } from "polished";
 import { memo } from "react";
-import { Platform, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { Marker } from "react-native-maps";
 import Animated from "react-native-reanimated";
 import { useSelectedBeach } from "../../src/state/useSelectedBeach";
@@ -65,7 +65,7 @@ export const BeachMarker = memo<BeachMarkerProps>(
           setSelectedBeachId(beachId);
         }}
         anchor={{ x: 0.5, y: 0.5 }}
-        tracksViewChanges={Platform.OS !== "android"}
+        tracksViewChanges={false}
       >
         <View
           style={{ padding: 4, paddingHorizontal: 8, position: "relative" }}

@@ -283,49 +283,56 @@ export default () => {
         onRegionChangeComplete={setRegion}
       >
         {cluster &&
-          markers.map((marker) => {
-            if (marker.properties.cluster) {
-              const leavesData = cluster.getLeaves(
-                marker.id as number,
-                Infinity
-              );
-              const beaches = leavesData.map(
-                (leave) => leave.properties.beach
-              ) as Beaches;
-              const waterQualityCounts = getWaterQualityCounts(beaches);
+          markers
+            .filter((marker) => {
+              // Filter out individual beach markers without data
+              // (clusters always have data, so only check non-cluster markers)
+              if (!marker.properties.cluster) {
+                const beach = marker.properties.beach;
+                if (!beach.data?.[0]) {
+                  console.warn(`[Map] Beach ${beach.id} (${beach.name}) has no data array`);
+                  return false;
+                }
+              }
+              return true;
+            })
+            .map((marker) => {
+              if (marker.properties.cluster) {
+                const leavesData = cluster.getLeaves(
+                  marker.id as number,
+                  Infinity
+                );
+                const beaches = leavesData.map(
+                  (leave) => leave.properties.beach
+                ) as Beaches;
+                const waterQualityCounts = getWaterQualityCounts(beaches);
+
+                return (
+                  <BeachCluster
+                    key={marker.id}
+                    id={marker.id}
+                    pointsCount={marker.properties.point_count}
+                    coordinates={marker.geometry.coordinates}
+                    beachIds={beaches.map((beach) => beach.id)}
+                    waterQualityCounts={waterQualityCounts}
+                    onPress={mapZoomIn(marker.geometry.coordinates)}
+                  />
+                );
+              }
+
+              const beach = marker.properties.beach;
+              const today = beach.data[0];
 
               return (
-                <BeachCluster
-                  key={marker.id}
-                  id={marker.id}
-                  pointsCount={marker.properties.point_count}
+                <BeachMarker
+                  key={`beach-${beach.id}`}
+                  beachId={beach.id}
                   coordinates={marker.geometry.coordinates}
-                  beachIds={beaches.map((beach) => beach.id)}
-                  waterQualityCounts={waterQualityCounts}
-                  onPress={mapZoomIn(marker.geometry.coordinates)}
+                  todayWaterQuality={today.water_quality}
+                  todayWaterTemperature={today.water_temperature ?? "?"}
                 />
               );
-            }
-
-            const beach = marker.properties.beach;
-            const today = beach.data?.[0];
-
-            // Skip beaches without data
-            if (!today) {
-              console.warn(`[Map] Beach ${beach.id} (${beach.name}) has no data array`);
-              return null;
-            }
-
-            return (
-              <BeachMarker
-                key={`beach-${beach.id}`}
-                beachId={beach.id}
-                coordinates={marker.geometry.coordinates}
-                todayWaterQuality={today.water_quality}
-                todayWaterTemperature={today.water_temperature ?? "?"}
-              />
-            );
-          })}
+            })}
 
         <Route />
       </MapView>
