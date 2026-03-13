@@ -7,9 +7,11 @@ import { CACHE_DURATION_MS } from "../constants/api";
 interface BeachDataState {
   beaches: Beaches;
   lastFetchTimestamp: number | null;
+  _hasHydrated: boolean;
   setBeaches: (beaches: Beaches) => void;
   isCacheValid: () => boolean;
   clearCache: () => void;
+  setHasHydrated: (hasHydrated: boolean) => void;
 }
 
 export const useBeachDataStore = create<BeachDataState>()(
@@ -17,6 +19,7 @@ export const useBeachDataStore = create<BeachDataState>()(
     (set, get) => ({
       beaches: [],
       lastFetchTimestamp: null,
+      _hasHydrated: false,
       setBeaches: (beaches) =>
         set({
           beaches,
@@ -32,10 +35,14 @@ export const useBeachDataStore = create<BeachDataState>()(
           beaches: [],
           lastFetchTimestamp: null,
         }),
+      setHasHydrated: (hasHydrated) => set({ _hasHydrated: hasHydrated }),
     }),
     {
       name: "beach-data-cache",
       storage: createJSONStorage(() => AsyncStorage),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

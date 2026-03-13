@@ -1,5 +1,5 @@
 import { FC, useCallback, useEffect, useRef, useState } from "react";
-import { Platform, StyleSheet, View } from "react-native";
+import { AppState, Platform, StyleSheet, View } from "react-native";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 import { API_URL, WEBSITE_URL } from "../constants/api";
 import { useBeachDataStore } from "../state/useBeachDataStore";
@@ -12,8 +12,6 @@ interface BackgroundDataLoaderProps {
   onNeedsCaptcha?: () => void;
   onSuccess?: () => void;
 }
-
-const CAPTCHA_DETECTION_TIMEOUT_MS = 8000;
 
 const INJECTED_JAVASCRIPT = `
   (function() {
@@ -170,12 +168,11 @@ export const BackgroundDataLoader: FC<BackgroundDataLoaderProps> = ({
     onNeedsCaptcha?.();
   }, [updateStatus, onNeedsCaptcha]);
 
-  // Main effect: try to load data
-  useEffect(() => {
-    // Skip if cache is already valid
-    if (isCacheValid()) {
-      updateStatus("success");
-      return;
+  const startFetch = useCallback(() => {
+    // Reset state for a new fetch attempt
+    hasReceivedDataRef.current = false;
+    if (captchaTimeoutRef.current) {
+      clearTimeout(captchaTimeoutRef.current);
     }
 
     const tryDirectFetch = async () => {
@@ -197,7 +194,6 @@ export const BackgroundDataLoader: FC<BackgroundDataLoaderProps> = ({
           }
         }
 
-        // Direct fetch failed, try WebView
         startWebViewFetch();
       } catch (error) {
         console.warn("[BackgroundLoader] Direct fetch failed:", error);
@@ -209,22 +205,35 @@ export const BackgroundDataLoader: FC<BackgroundDataLoaderProps> = ({
       updateStatus("webview");
       setShowWebView(true);
 
-      // Start timeout for captcha detection
       captchaTimeoutRef.current = setTimeout(() => {
         if (!hasReceivedDataRef.current) {
           triggerCaptchaNeeded();
         }
-      }, CAPTCHA_DETECTION_TIMEOUT_MS);
+      }, 2000);
     };
 
     tryDirectFetch();
+  }, [handleDataReceived, updateStatus, triggerCaptchaNeeded]);
+
+  // Fetch on mount and when app returns to foreground with expired cache
+  useEffect(() => {
+    if (!isCacheValid()) {
+      startFetch();
+    }
+
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "active" && !isCacheValid()) {
+        startFetch();
+      }
+    });
 
     return () => {
+      subscription.remove();
       if (captchaTimeoutRef.current) {
         clearTimeout(captchaTimeoutRef.current);
       }
     };
-  }, [isCacheValid, handleDataReceived, updateStatus, triggerCaptchaNeeded]);
+  }, [startFetch, isCacheValid]);
 
   // Reload WebView (can be called externally via ref if needed)
   const reloadWebView = useCallback(() => {
@@ -239,10 +248,10 @@ export const BackgroundDataLoader: FC<BackgroundDataLoaderProps> = ({
       if (!hasReceivedDataRef.current) {
         triggerCaptchaNeeded();
       }
-    }, CAPTCHA_DETECTION_TIMEOUT_MS);
+    }, 3000); // Give reload a bit more time
   }, [triggerCaptchaNeeded]);
 
-  if (!showWebView || status === "success") {
+  if (!showWebView || status === "success" || status === "idle") {
     return null;
   }
 
