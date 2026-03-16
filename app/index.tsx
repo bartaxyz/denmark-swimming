@@ -260,8 +260,9 @@ export default () => {
       <MapView
         ref={mapViewRef}
         style={styles.map}
-        userInterfaceStyle={colorScheme || "light"}
+        userInterfaceStyle={colorScheme === "dark" ? "dark" : "light"}
         minZoomLevel={6.5}
+        maxZoomLevel={20}
         zoomControlEnabled={false}
         showsUserLocation={!!location}
         showsMyLocationButton={false}

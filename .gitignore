@@ -40,3 +40,5 @@ yarn-error.*
 # Android bundles
 *.aab
 *.apk
+/android
+/ios
