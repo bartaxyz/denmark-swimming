@@ -262,6 +262,7 @@ export default () => {
         style={styles.map}
         userInterfaceStyle={colorScheme === "dark" ? "dark" : "light"}
         minZoomLevel={6.5}
+        maxZoomLevel={20}
         zoomControlEnabled={false}
         showsUserLocation={!!location}
         showsMyLocationButton={false}
