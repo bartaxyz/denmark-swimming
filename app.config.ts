@@ -76,6 +76,7 @@ const expo: ExpoConfig = {
   web: { favicon: "./assets/favicon.png" },
   extra: { eas: { projectId: "a4e906d9-0345-4542-bf99-d44e10d445cf" } },
   plugins: [
+    "expo-router",
     [
       "expo-location",
       {
