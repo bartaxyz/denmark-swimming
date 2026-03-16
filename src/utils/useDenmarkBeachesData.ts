@@ -6,8 +6,6 @@ export const useDenmarkBeachesData = () => {
   const isCacheValid = useBeachDataStore((state) => state.isCacheValid);
   const clearCache = useBeachDataStore((state) => state.clearCache);
   const hasHydrated = useBeachDataStore((state) => state._hasHydrated);
-  const status = useBeachDataStore((state) => state.status);
-
   const forceRefresh = () => {
     clearCache();
     router.replace("/captcha");
@@ -21,6 +19,5 @@ export const useDenmarkBeachesData = () => {
     forceRefresh,
     isCacheValid: isCacheValid(),
     hasHydrated,
-    status,
   };
 };

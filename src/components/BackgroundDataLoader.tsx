@@ -18,79 +18,65 @@ export const BackgroundDataLoader: FC<BackgroundDataLoaderProps> = ({
   const webViewRef = useRef<WebView>(null);
   const [showWebView, setShowWebView] = useState(false);
   const captchaTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const hasReceivedDataRef = useRef(false);
 
-  const status = useBeachDataStore((state) => state.status);
   const setBeaches = useBeachDataStore((state) => state.setBeaches);
-  const setStatus = useBeachDataStore((state) => state.setStatus);
   const isCacheValid = useBeachDataStore((state) => state.isCacheValid);
 
-  const requestRefresh = useCallback(() => {
-    if (!isCacheValid()) {
-      hasReceivedDataRef.current = false;
-      setShowWebView(true);
-      setStatus("needs_captcha");
-    }
-  }, [isCacheValid, setStatus]);
+  const startWebViewFetch = useCallback(() => {
+    setShowWebView(true);
 
-  // When status becomes "needs_captcha", start the WebView timeout
-  useEffect(() => {
-    if (status !== "needs_captcha" || !showWebView) return;
+    if (captchaTimeoutRef.current) {
+      clearTimeout(captchaTimeoutRef.current);
+    }
 
     captchaTimeoutRef.current = setTimeout(() => {
-      if (!hasReceivedDataRef.current) {
-        onNeedsCaptcha?.();
-      }
+      onNeedsCaptcha?.();
     }, 2000);
-
-    return () => {
-      if (captchaTimeoutRef.current) {
-        clearTimeout(captchaTimeoutRef.current);
-      }
-    };
-  }, [status, showWebView, onNeedsCaptcha]);
-
-  // When fetch succeeds, clean up
-  useEffect(() => {
-    if (status === "success") {
-      setShowWebView(false);
-      hasReceivedDataRef.current = true;
-      if (captchaTimeoutRef.current) {
-        clearTimeout(captchaTimeoutRef.current);
-      }
-      onSuccess?.();
-    }
-  }, [status, onSuccess]);
-
-  // Trigger fetch on mount and app resume
-  useEffect(() => {
-    requestRefresh();
-
-    const subscription = AppState.addEventListener("change", (nextAppState) => {
-      if (nextAppState === "active") {
-        requestRefresh();
-      }
-    });
-
-    return () => subscription.remove();
-  }, [requestRefresh]);
+  }, [onNeedsCaptcha]);
 
   const handleMessage = useCallback(
     (event: WebViewMessageEvent) => {
       try {
         const message = JSON.parse(event.nativeEvent.data);
-        if (message.type === "DATA_RECEIVED" && !hasReceivedDataRef.current) {
+        if (message.type === "DATA_RECEIVED") {
           const beaches = JSON.parse(message.data);
           setBeaches(transformApiResponse(beaches));
+          setShowWebView(false);
+
+          if (captchaTimeoutRef.current) {
+            clearTimeout(captchaTimeoutRef.current);
+          }
+
+          onSuccess?.();
         }
       } catch (error) {
         console.error("[BackgroundLoader] Error parsing message:", error);
       }
     },
-    [setBeaches]
+    [setBeaches, onSuccess]
   );
 
-  if (!showWebView || status === "success") {
+  // Refresh on mount and when app returns to foreground
+  useEffect(() => {
+    if (!isCacheValid()) {
+      startWebViewFetch();
+    }
+
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "active" && !isCacheValid()) {
+        startWebViewFetch();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+      if (captchaTimeoutRef.current) {
+        clearTimeout(captchaTimeoutRef.current);
+      }
+    };
+  }, [isCacheValid, startWebViewFetch]);
+
+  if (!showWebView) {
     return null;
   }
 
