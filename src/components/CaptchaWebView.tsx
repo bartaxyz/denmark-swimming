@@ -11,144 +11,14 @@ import {
 } from "react-native";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 import { Beaches } from "../../types";
-import { API_URL, WEBSITE_URL } from "../constants/api";
+import { WEBSITE_URL } from "../constants/api";
+import { INJECTED_JAVASCRIPT } from "../constants/injectedJs";
 import { usePalette } from "../theme/usePalette";
 
 interface CaptchaWebViewProps {
   onDataReceived: (data: Beaches) => void;
   onError: (error: string) => void;
 }
-
-const INJECTED_JAVASCRIPT = `
-  (function() {
-    console.log('[CaptchaWebView] Injected JS starting...');
-    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOG', message: 'Injected JS initialized' }));
-
-    function isBeachData(text) {
-      try {
-        const data = JSON.parse(text);
-        const isValid = Array.isArray(data) && data.length > 0 &&
-               data[0].id !== undefined && data[0].latitude !== undefined;
-        console.log('[CaptchaWebView] isBeachData check:', isValid, 'length:', data?.length);
-        return isValid;
-      } catch (e) {
-        console.log('[CaptchaWebView] isBeachData parse error:', e.message);
-        return false;
-      }
-    }
-
-    function checkForData() {
-      const url = window.location.href;
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOG', message: 'checkForData called, URL: ' + url }));
-
-      if (url.includes('badevand.dk/api/next/beaches') || url.includes('api/next/beaches')) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOG', message: 'URL matches API!' }));
-        const bodyText = document.body.innerText || document.body.textContent;
-        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOG', message: 'Body text length: ' + (bodyText?.length || 0) }));
-
-        if (isBeachData(bodyText)) {
-          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOG', message: 'Valid beach data found! Sending...' }));
-          window.ReactNativeWebView.postMessage(JSON.stringify({
-            type: 'DATA_RECEIVED',
-            data: bodyText
-          }));
-        }
-      }
-    }
-
-    // Intercept fetch
-    const originalFetch = window.fetch;
-    window.fetch = async function(...args) {
-      const url = args[0];
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOG', message: 'Fetch intercepted: ' + url }));
-
-      const response = await originalFetch.apply(this, args);
-
-      if (typeof url === 'string' && (url.includes('badevand.dk/api/next/beaches') || url.includes('api/next/beaches'))) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOG', message: 'Fetch matches API! Status: ' + response.status }));
-        try {
-          const clone = response.clone();
-          const text = await clone.text();
-          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOG', message: 'Fetch response length: ' + text.length }));
-
-          if (isBeachData(text)) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOG', message: 'Valid beach data from fetch! Sending...' }));
-            window.ReactNativeWebView.postMessage(JSON.stringify({
-              type: 'DATA_RECEIVED',
-              data: text
-            }));
-          }
-        } catch (e) {
-          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOG', message: 'Fetch processing error: ' + e.message }));
-        }
-      }
-      return response;
-    };
-
-    // Intercept XMLHttpRequest
-    const originalXHROpen = XMLHttpRequest.prototype.open;
-    const originalXHRSend = XMLHttpRequest.prototype.send;
-
-    XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-      this._url = url;
-      this._method = method;
-      if (url && url.includes('api/next/beaches')) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOG', message: 'XHR OPEN API CALL: ' + method + ' ' + url }));
-      }
-      return originalXHROpen.apply(this, [method, url, ...rest]);
-    };
-
-    XMLHttpRequest.prototype.send = function(...args) {
-      const xhr = this;
-      const originalOnReadyStateChange = xhr.onreadystatechange;
-
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4 && xhr._url && xhr._url.includes('api/next/beaches')) {
-          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOG', message: 'XHR COMPLETE! Status: ' + xhr.status + ', URL: ' + xhr._url }));
-          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOG', message: 'XHR response length: ' + (xhr.responseText?.length || 0) }));
-          try {
-            if (xhr.status === 200 && isBeachData(xhr.responseText)) {
-              window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOG', message: 'Valid beach data from XHR! Sending...' }));
-              window.ReactNativeWebView.postMessage(JSON.stringify({
-                type: 'DATA_RECEIVED',
-                data: xhr.responseText
-              }));
-            } else {
-              window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOG', message: 'XHR data not valid beach data or status not 200' }));
-            }
-          } catch (e) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOG', message: 'XHR processing error: ' + e.message }));
-          }
-        }
-        if (originalOnReadyStateChange) {
-          originalOnReadyStateChange.apply(this, arguments);
-        }
-      };
-
-      return originalXHRSend.apply(this, args);
-    };
-
-    // Check periodically and on navigation
-    setInterval(checkForData, 2000);
-    window.addEventListener('load', () => {
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOG', message: 'Window load event' }));
-      checkForData();
-    });
-
-    // Also check on URL changes
-    let lastUrl = window.location.href;
-    setInterval(() => {
-      if (window.location.href !== lastUrl) {
-        lastUrl = window.location.href;
-        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOG', message: 'URL changed to: ' + lastUrl }));
-        setTimeout(checkForData, 500);
-      }
-    }, 500);
-
-    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOG', message: 'All hooks installed' }));
-  })();
-  true;
-`;
 
 export const CaptchaWebView: FC<CaptchaWebViewProps> = ({
   onDataReceived,
