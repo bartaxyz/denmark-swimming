@@ -40,6 +40,10 @@ export const useBeachDataStore = create<BeachDataState>()(
     {
       name: "beach-data-cache",
       storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({
+        beaches: state.beaches,
+        lastFetchTimestamp: state.lastFetchTimestamp,
+      }),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },
