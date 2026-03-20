@@ -1,6 +1,8 @@
+import { GlassView } from "expo-glass-effect";
 import { rgba } from "polished";
 import { FC, forwardRef } from "react";
 import {
+  Platform,
   Pressable,
   StyleProp,
   StyleSheet,
@@ -8,6 +10,8 @@ import {
   ViewStyle,
 } from "react-native";
 import { usePalette } from "../theme/usePalette";
+
+let useGlass = Platform.OS === "ios";
 
 export interface IconButtonProps {
   children: React.ReactNode;
@@ -21,53 +25,53 @@ export const IconButton = forwardRef<View, IconButtonProps>(
   ({ children, onPress, variant = "outline-only", size = "M", style }, ref) => {
     const { foreground, background, isDark } = usePalette();
 
-    const styles = StyleSheet.create({
-      button: {
-        width: size === "M" ? 40 : 48,
-        height: size === "M" ? 40 : 48,
-        backgroundColor: rgba(foreground, isDark ? 0.1 : 0),
-        borderRadius: 64,
-        borderColor: rgba(foreground, isDark ? 0.15 : 0.1),
-        borderWidth: 1,
-        alignItems: "center",
-        justifyContent: "center",
-      },
-      buttonSolid: {
-        backgroundColor: background,
-        shadowColor: "black",
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-      },
-      buttonTransparent: {
-        backgroundColor: "transparent",
-        borderWidth: 0,
-      },
-    });
+    const dimension = size === "M" ? 40 : 48;
 
-    const buttonStyles: StyleProp<ViewStyle> = [styles.button];
+    const baseStyle: ViewStyle = {
+      width: dimension,
+      height: dimension,
+      borderRadius: 64,
+      alignItems: "center",
+      justifyContent: "center",
+    };
 
-    if (variant === "solid") {
-      buttonStyles.push(styles.buttonSolid);
+    const fallbackStyle: ViewStyle = {
+      ...baseStyle,
+      backgroundColor: rgba(foreground, isDark ? 0.1 : 0),
+      borderColor: rgba(foreground, isDark ? 0.15 : 0.1),
+      borderWidth: 1,
+    };
+
+    const solidStyle: ViewStyle = {
+      backgroundColor: background,
+      shadowColor: "black",
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 2 },
+    };
+
+    const buttonStyles: StyleProp<ViewStyle> = [
+      useGlass ? baseStyle : fallbackStyle,
+    ];
+
+    if (variant === "solid" && !useGlass) {
+      buttonStyles.push(solidStyle);
     } else if (variant === "transparent") {
-      buttonStyles.push(styles.buttonTransparent);
+      buttonStyles.push({ backgroundColor: "transparent", borderWidth: 0 });
     }
 
-    return (
+    const content = (
       <Pressable
         ref={ref}
         onPress={onPress || ((event) => event.preventDefault())}
-        style={({ pressed }) => [
-          { opacity: pressed ? 0.5 : 1 },
-          buttonStyles,
-          style,
-        ]}
+        style={({ pressed }) => [buttonStyles, style]}
       >
-        {children}
+        <GlassView isInteractive={true} style={baseStyle}>
+          {children}
+        </GlassView>
       </Pressable>
     );
-  }
+
+    return content;
+  },
 );

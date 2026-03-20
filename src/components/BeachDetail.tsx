@@ -1,18 +1,15 @@
-import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
-import { BottomSheetScrollViewMethods } from "@gorhom/bottom-sheet/lib/typescript/components/bottomSheetScrollable/types";
-import { BlurView } from "expo-blur";
+import { TrueSheet } from "@lodev09/react-native-true-sheet";
 import { rgba } from "polished";
-import { FC, useEffect, useMemo, useRef } from "react";
+import { FC, useEffect, useRef } from "react";
 import {
   ActivityIndicator,
+  Dimensions,
   Linking,
-  Platform,
-  Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import Animated, { SharedValue, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Route } from "../icons/Route";
 import { useSelectedBeach } from "../state/useSelectedBeach";
@@ -21,22 +18,19 @@ import { useDenmarkBeachesData } from "../utils/useDenmarkBeachesData";
 import { BeachDetailHeader, HEADER_HEIGHT } from "./BeachDetailHeader";
 import { BeachDetailInfo } from "./BeachDetailInfo";
 import { Button } from "./Button";
+import { getSheetDetents } from "../utils/getSheetDetents";
 
 export const SHEET_TOP_PADDING = 256;
 
 export interface BeachDetailProps {
-  bottomSheetAnimatedIndex?: SharedValue<number>;
-  bottomSheetAnimatedPosition?: SharedValue<number>;
   onChange?: (index: number) => void;
 }
 
-export const BeachDetail: FC<BeachDetailProps> = ({
-  bottomSheetAnimatedIndex: bottomSheetAnimatedIndexOverride,
-  bottomSheetAnimatedPosition: bottomSheetAnimatedPositionOverride,
-  onChange,
-}) => {
-  const { foreground, background } = usePalette();
+
+export const BeachDetail: FC<BeachDetailProps> = ({ onChange }) => {
+  const { foreground } = usePalette();
   const insets = useSafeAreaInsets();
+  const sheetDetents = getSheetDetents();
 
   const { beaches, isLoading } = useDenmarkBeachesData();
   const selectedBeachId = useSelectedBeach((state) => state.selectedBeachId);
@@ -44,187 +38,106 @@ export const BeachDetail: FC<BeachDetailProps> = ({
   const selectedBeach = beaches.find((beach) => beach.id === selectedBeachId);
   const today = selectedBeach?.data?.[0];
 
-  const bottomSheetRef = useRef<BottomSheet>(null);
-  const bottomSheetScrollViewRef = useRef<BottomSheetScrollViewMethods>(null);
-  const snapPoints = useMemo(
-    () => [HEADER_HEIGHT + insets.bottom, "100%"],
-    [insets.bottom]
-  );
+  const sheetRef = useRef<TrueSheet>(null);
 
-  const indexRef = useRef(0);
-
-  const handleSheetChange = (index: number) => {
-    indexRef.current = index;
-    onChange?.(index);
-  };
-
-  const scrollToTop = () => {
-    bottomSheetScrollViewRef.current?.scrollTo({
-      y: 0,
-      animated: true,
-    });
-  };
+  // Present on mount
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      sheetRef.current?.present(0).catch(() => {});
+    }, 100);
+    return () => clearTimeout(timeout);
+  }, []);
 
   useEffect(() => {
-    scrollToTop();
+    if (selectedBeach) {
+      sheetRef.current?.resize(0).catch(() => {});
+    }
   }, [selectedBeach]);
 
-  useEffect(() => {
-    if (!bottomSheetRef.current) {
-      return;
-    }
-
-    if (selectedBeach && indexRef.current < 0) {
-      bottomSheetRef.current.snapToIndex(0);
-    }
-  }, [selectedBeach, bottomSheetRef]);
-
-  const bottomSheetAnimatedIndexInternal = useSharedValue(0);
-  const bottomSheetAnimatedIndex =
-    bottomSheetAnimatedIndexOverride || bottomSheetAnimatedIndexInternal;
-
-  const bottomSheetAnimatedPositionInternal = useSharedValue(0);
-  const bottomSheetAnimatedPosition =
-    bottomSheetAnimatedPositionOverride || bottomSheetAnimatedPositionInternal;
-
   const toggleBeachDetail = () => {
-    if (indexRef.current === 0) {
-      bottomSheetRef.current?.snapToIndex(1);
-      onChange?.(1);
-    } else {
-      bottomSheetRef.current?.snapToIndex(0);
-      onChange?.(0);
-    }
+    sheetRef.current?.resize(1).catch(() => {});
   };
 
-  return (
-    <View style={styles.container}>
-      <BottomSheet
-        ref={bottomSheetRef}
-        animatedIndex={bottomSheetAnimatedIndex}
-        animatedPosition={bottomSheetAnimatedPosition}
-        snapPoints={snapPoints}
-        onChange={handleSheetChange}
-        backgroundComponent={BottomSheetBackground}
-        backgroundStyle={{
-          borderRadius: 24,
-          backgroundColor: rgba(background, Platform.OS === "ios" ? 0.8 : 1),
-          overflow: "hidden",
-          borderColor: rgba(foreground, 0.1),
-          borderWidth: 1,
-          marginLeft: -1,
-          marginRight: -1,
-        }}
-        enableContentPanningGesture={!!selectedBeachId}
-        enableHandlePanningGesture={!!selectedBeachId}
-        handleStyle={{ display: "none" }}
-        handleIndicatorStyle={{ backgroundColor: foreground }}
-        topInset={insets.top + SHEET_TOP_PADDING}
-      >
-        {selectedBeach ? (
-          <BeachDetailHeader
-            toggleBeachDetail={toggleBeachDetail}
-            selectedBeach={selectedBeach}
-            bottomSheetAnimatedIndex={bottomSheetAnimatedIndex}
-            today={today}
-          />
-        ) : (
-          <View style={styles.emptyHeader}>
-            {isLoading ? (
-              <ActivityIndicator />
-            ) : (
-              <Text style={[styles.emptyHeaderLabel, { color: foreground }]}>
-                Select a beach
-              </Text>
-            )}
-          </View>
-        )}
-
-        <View style={styles.contentContainer}>
-          <Animated.View style={{ opacity: bottomSheetAnimatedIndex }}>
-            <View style={styles.actionsBar}>
-              <Button
-                onPress={() => {
-                  Linking.openURL(
-                    `https://www.google.com/maps/dir/?api=1&destination=${selectedBeach?.latitude},${selectedBeach?.longitude}`
-                  );
-                }}
-                leadingIcon={
-                  <Route stroke={foreground} width={16} height={16} />
-                }
-                style={styles.actionsBarAction}
-              >
-                Directions
-              </Button>
-
-              {selectedBeach?.municipality_url && (
-                <Button
-                  onPress={() => {
-                    // The `municipality_url` field has a format of
-                    // "<a target='_blank' href='http://www.ishoj.dk'>Hjemmeside</a>"
-                    // Therefore, we need to find the URL inside the href attribute
-                    const url =
-                      selectedBeach?.municipality_url.match(
-                        /href=["'](.*)["']/
-                      )?.[1] || undefined;
-
-                    if (!url) return;
-
-                    Linking.openURL(url);
-                  }}
-                  style={styles.actionsBarAction}
-                >
-                  {selectedBeach?.municipality} Website
-                </Button>
-              )}
-            </View>
-          </Animated.View>
-        </View>
-
-        <Animated.View
-          style={{
-            height: 1,
-            backgroundColor: rgba(foreground, 0.1),
-            marginLeft: 16,
-            marginRight: 16,
-            marginTop: 16,
-            opacity: bottomSheetAnimatedIndex,
-          }}
-        />
-
-        <BottomSheetScrollView
-          ref={bottomSheetScrollViewRef}
-          contentContainerStyle={{
-            paddingBottom: insets.bottom,
-          }}
-        >
-          <BeachDetailInfo beach={selectedBeach} />
-        </BottomSheetScrollView>
-      </BottomSheet>
+  const headerContent = selectedBeach ? (
+    <BeachDetailHeader
+      toggleBeachDetail={toggleBeachDetail}
+      selectedBeach={selectedBeach}
+      today={today}
+    />
+  ) : (
+    <View style={styles.emptyHeader}>
+      {isLoading ? (
+        <ActivityIndicator />
+      ) : (
+        <Text style={[styles.emptyHeaderLabel, { color: foreground }]}>
+          Select a beach
+        </Text>
+      )}
     </View>
   );
-};
 
-const BottomSheetBackground = ({ style }: any) => {
-  const { isDark } = usePalette();
+  return (
+    <TrueSheet
+      ref={sheetRef}
+      name="beach-detail"
+      detents={sheetDetents}
+      initialDetentIndex={-1}
+      grabber={true}
+      dimmed={false}
+      dismissible={false}
+      scrollable
+      onDetentChange={(e) => onChange?.(e.nativeEvent.index)}
+      header={headerContent}
+      headerStyle={styles.headerContainer}
+    >
+      <View style={styles.contentContainer}>
+        <View style={styles.actionsBar}>
+          <Button
+            onPress={() => {
+              Linking.openURL(
+                `https://www.google.com/maps/dir/?api=1&destination=${selectedBeach?.latitude},${selectedBeach?.longitude}`,
+              );
+            }}
+            leadingIcon={<Route stroke={foreground} width={16} height={16} />}
+            style={styles.actionsBarAction}
+          >
+            Directions
+          </Button>
 
-  if (Platform.OS === "ios") {
-    return (
-      <BlurView
-        style={style}
-        intensity={25 + Math.random()}
-        tint={isDark ? "dark" : "light"}
-      />
-    );
-  }
+          {selectedBeach?.municipality_url && (
+            <Button
+              onPress={() => {
+                const url =
+                  selectedBeach?.municipality_url.match(
+                    /href=["'](.*)["']/,
+                  )?.[1] || undefined;
 
-  return <View style={style} />;
+                if (!url) return;
+
+                Linking.openURL(url);
+              }}
+              style={styles.actionsBarAction}
+            >
+              {selectedBeach?.municipality} Website
+            </Button>
+          )}
+        </View>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={{
+          paddingBottom: insets.bottom,
+        }}
+      >
+        <BeachDetailInfo beach={selectedBeach} />
+      </ScrollView>
+    </TrueSheet>
+  );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    pointerEvents: "box-none",
+  headerContainer: {
+    minHeight: HEADER_HEIGHT,
   },
   emptyHeader: {
     height: HEADER_HEIGHT,
@@ -239,20 +152,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     textAlign: "center",
     opacity: 0.5,
-  },
-  header: {
-    height: HEADER_HEIGHT,
-    paddingLeft: 24,
-    paddingRight: 16,
-    gap: 8,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  headerInfo: {
-    flexDirection: "column",
-    gap: 4,
-    flexGrow: 1,
   },
   contentContainer: {
     padding: 24,

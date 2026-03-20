@@ -1,20 +1,16 @@
 import { FC } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { SharedValue, useAnimatedStyle } from "react-native-reanimated";
 import { Beach, WaterQuality } from "../../types";
-import { ChevronUp } from "../icons/ChevronUp";
 import { usePalette } from "../theme/usePalette";
 import { getWeatherIcon } from "../utils/getWeatherIcon";
 import { BeachDetailHeaderDivider } from "./BeachDetailHeaderDivider";
 import { BeachDetailHeaderInfo } from "./BeachDetailHeaderInfo";
-import { IconButton } from "./IconButton";
 import { WaterQualityIndicatorLabel } from "./WaterQualityIndicatorLabel";
 
 export const HEADER_HEIGHT = 80;
 
 export interface BeachDetailHeaderProps {
   toggleBeachDetail: () => void;
-  bottomSheetAnimatedIndex: SharedValue<number>;
   selectedBeach: Beach;
   today?: Beach["data"][number];
 }
@@ -23,21 +19,10 @@ export const BeachDetailHeader: FC<BeachDetailHeaderProps> = ({
   toggleBeachDetail,
   selectedBeach,
   today,
-  bottomSheetAnimatedIndex,
 }) => {
   const { foreground } = usePalette();
 
   const weatherType = today?.weather_type;
-
-  const chevronAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        {
-          rotate: `${bottomSheetAnimatedIndex.value * 180}deg`,
-        },
-      ],
-    };
-  });
 
   return (
     <Pressable
@@ -82,12 +67,6 @@ export const BeachDetailHeader: FC<BeachDetailHeaderProps> = ({
           value={`${today?.water_temperature} °C`}
         />
       ) : null}
-
-      <Animated.View style={chevronAnimatedStyle}>
-        <IconButton onPress={toggleBeachDetail}>
-          <ChevronUp stroke={foreground} />
-        </IconButton>
-      </Animated.View>
     </Pressable>
   );
 };

@@ -26,9 +26,7 @@ export default () => {
 
   return (
     <>
-      <Divider />
-
-      <ScrollView>
+      <ScrollView contentInsetAdjustmentBehavior="automatic">
         <>
           <TransportationModeRow />
           <Divider />
@@ -67,16 +65,16 @@ export default () => {
   );
 };
 
-const TransportationModeRow: FC<PropsWithChildren> = ({ children }) => {
+const TransportationModeRow: FC = ({}) => {
   const transportationMode = usePreferences(
-    (state) => state.transportationMode
+    (state) => state.transportationMode,
   );
   const setTransportationMode = usePreferences(
-    (state) => state.setTransportationMode
+    (state) => state.setTransportationMode,
   );
 
   const transportationModes = Object.keys(
-    TRANSPORTATION_MODES
+    TRANSPORTATION_MODES,
   ) as TransportationMode[];
 
   const styles = StyleSheet.create({
@@ -115,7 +113,7 @@ const MapsProviderRow: FC<PropsWithChildren> = ({ children }) => {
 
   const toggleMapsProvider = () => {
     setMapsProvider(
-      mapsProvider === "google" ? PROVIDER_DEFAULT : PROVIDER_GOOGLE
+      mapsProvider === "google" ? PROVIDER_DEFAULT : PROVIDER_GOOGLE,
     );
   };
 
@@ -135,10 +133,10 @@ const MapsProviderRow: FC<PropsWithChildren> = ({ children }) => {
 
 const DisableCustomMapStylesRow: FC<PropsWithChildren> = ({ children }) => {
   const disableCustomMapStyles = usePreferences(
-    (state) => state.disableCustomMapStyles
+    (state) => state.disableCustomMapStyles,
   );
   const setDisableCustomMapStyles = usePreferences(
-    (state) => state.setDisableCustomMapStyles
+    (state) => state.setDisableCustomMapStyles,
   );
 
   const toggleDisableCustomMapStyles = () => {
@@ -162,7 +160,7 @@ const DisableCustomMapStylesRow: FC<PropsWithChildren> = ({ children }) => {
 const PerformanceModeRow: FC<PropsWithChildren> = ({ children }) => {
   const performanceMode = usePreferences((state) => state.performanceMode);
   const setPerformanceMode = usePreferences(
-    (state) => state.setPerformanceMode
+    (state) => state.setPerformanceMode,
   );
 
   const togglePerformanceMode = () => {
