@@ -55,6 +55,7 @@ export const useSelectedRoute = () => {
 
   return {
     polylineCoordinates: coordinates,
+    destination,
     distance: route?.legs[0].distance,
     duration: route?.legs[0].duration,
   };

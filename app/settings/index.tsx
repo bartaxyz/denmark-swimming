@@ -19,6 +19,7 @@ import {
 } from "../../src/state/usePreferences";
 import { usePalette } from "../../src/theme/usePalette";
 import { useDenmarkBeachesData } from "../../src/utils/useDenmarkBeachesData";
+import { useLocationStore } from "../../src/utils/useLocation";
 
 export default () => {
   const mapsProvider = usePreferences((state) => state.mapsProvider);
@@ -60,6 +61,13 @@ export default () => {
           <RefreshDataRow />
           <Divider />
         </>
+
+        {__DEV__ && (
+          <>
+            <DebugLocationRow />
+            <Divider />
+          </>
+        )}
       </ScrollView>
     </>
   );
@@ -177,6 +185,44 @@ const PerformanceModeRow: FC<PropsWithChildren> = ({ children }) => {
         value={performanceMode}
         onValueChange={togglePerformanceMode}
       />
+    </Row>
+  );
+};
+
+const DebugLocationRow: FC = () => {
+  const { foreground } = usePalette();
+  const debugLocation = useLocationStore((s) => s.debugLocation);
+  const setDebugLocation = useLocationStore((s) => s.setDebugLocation);
+
+  const isActive = !!debugLocation;
+
+  const toggle = () => {
+    if (isActive) {
+      setDebugLocation(null);
+    } else {
+      // Copenhagen, Denmark
+      setDebugLocation({
+        coords: {
+          latitude: 55.6761,
+          longitude: 12.5683,
+          altitude: 0,
+          accuracy: 10,
+          altitudeAccuracy: 10,
+          heading: 0,
+          speed: 0,
+        },
+        timestamp: Date.now(),
+      });
+    }
+  };
+
+  return (
+    <Row
+      title="Debug: Fake Location (Copenhagen)"
+      subtitle={isActive ? "Using fake location in Copenhagen" : "Tap to simulate being in Denmark"}
+      onPress={toggle}
+    >
+      <Text style={{ color: foreground, fontSize: 14 }}>{isActive ? "On" : "Off"}</Text>
     </Row>
   );
 };

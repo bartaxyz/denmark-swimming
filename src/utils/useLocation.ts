@@ -9,15 +9,19 @@ interface LocationStoreState {
   setLocation: (location: Location.LocationObject) => void;
   status: Location.PermissionStatus | null;
   setStatus: (status: Location.PermissionStatus) => void;
+  debugLocation: Location.LocationObject | null;
+  setDebugLocation: (location: Location.LocationObject | null) => void;
 }
 
-const useLocationStore = create<LocationStoreState>()(
+export const useLocationStore = create<LocationStoreState>()(
   persist(
     (set) => ({
       location: null,
       setLocation: (location) => set({ location }),
       status: null,
       setStatus: (status) => set({ status }),
+      debugLocation: null,
+      setDebugLocation: (debugLocation) => set({ debugLocation }),
     }),
     {
       name: "location-store",
@@ -27,7 +31,8 @@ const useLocationStore = create<LocationStoreState>()(
 );
 
 export const useLocation = (options: { autoRequest?: boolean } = {}) => {
-  const { location, status, setLocation, setStatus } = useLocationStore();
+  const { location: realLocation, status, setLocation, setStatus, debugLocation } = useLocationStore();
+  const location = (__DEV__ && debugLocation) ? debugLocation : realLocation;
 
   const requestPermissions = async () => {
     let { status: locationStatus } =

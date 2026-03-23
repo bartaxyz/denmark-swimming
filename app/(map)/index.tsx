@@ -6,6 +6,7 @@ import { Alert, Linking, StyleSheet, View, useColorScheme } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapView, {
   MapPressEvent,
+  Marker,
   PROVIDER_GOOGLE,
   Region,
 } from "react-native-maps";
@@ -21,12 +22,11 @@ import { IconButton } from "../../src/components/IconButton";
 import { LoadingIndicator } from "../../src/components/LoadingIndicator";
 import { Route } from "../../src/components/Route";
 import {
-  boundingBoxOfDenmark,
   denmarkCenter,
   denmarkNorthEast,
   denmarkSouthWest,
 } from "../../src/constants";
-import { DENMARK_ZOOM, LOCATE_ZOOM } from "../../src/constants/map";
+import { DENMARK_ZOOM } from "../../src/constants/map";
 import { Mark } from "../../src/icons/Mark";
 import { Settings01 } from "../../src/icons/Settings01";
 import { PlatformIcon } from "../../src/components/PlatformIcon";
@@ -37,7 +37,7 @@ import { getCluster } from "../../src/utils/getCluster";
 import { useMapRecenter } from "../../src/utils/useMapRecenter";
 import { getWaterQualityCounts } from "../../src/utils/getWaterQualityCounts";
 import { useDenmarkBeachesData } from "../../src/utils/useDenmarkBeachesData";
-import { useLocation } from "../../src/utils/useLocation";
+import { useLocation, useLocationStore } from "../../src/utils/useLocation";
 import { Beaches } from "../../types";
 import { getSheetDetents } from "../../src/utils/getSheetDetents";
 
@@ -57,6 +57,8 @@ export default () => {
     retryRequestPermissions,
   } = useLocation();
   const { beaches } = useDenmarkBeachesData();
+  const debugLocation = useLocationStore((s) => s.debugLocation);
+  const isDebugLocation = __DEV__ && !!debugLocation;
   const mapViewRef = useRef<MapView>(null);
   const colorScheme = useColorScheme();
 
@@ -102,6 +104,8 @@ export default () => {
     router.push("/captcha");
   }, []);
 
+  const { recenter } = useMapRecenter(mapViewRef, sheetDetents);
+
   const locate = async () => {
     if (
       !location &&
@@ -119,43 +123,13 @@ export default () => {
       return;
     }
 
-    if (location) {
-      const { latitude, longitude } = location.coords;
-      const inDenmark =
-        latitude >= boundingBoxOfDenmark.latitudeSouth &&
-        latitude <= boundingBoxOfDenmark.latitudeNorth &&
-        longitude >=
-          Math.min(
-            boundingBoxOfDenmark.longitudeWest,
-            boundingBoxOfDenmark.longitudeEast,
-          ) &&
-        longitude <=
-          Math.max(
-            boundingBoxOfDenmark.longitudeWest,
-            boundingBoxOfDenmark.longitudeEast,
-          );
-
-      if (inDenmark) {
-        mapViewRef.current?.animateCamera({
-          heading: 0,
-          pitch: 0,
-          center: { latitude, longitude },
-          zoom: LOCATE_ZOOM,
-        });
-      } else {
-        mapViewRef.current?.animateCamera({
-          heading: 0,
-          pitch: 0,
-          center: denmarkCenter,
-          zoom: DENMARK_ZOOM,
-        });
-      }
-    } else {
+    if (!location) {
       retryRequestPermissions();
+      return;
     }
-  };
 
-  const { recenterMap } = useMapRecenter(mapViewRef, sheetDetents);
+    recenter();
+  };
 
   // Show the sheet on mount and keep it in sync with beach selection
   const sheetShown = useRef(false);
@@ -202,7 +176,7 @@ export default () => {
         minZoomLevel={6.5}
         maxZoomLevel={20}
         zoomControlEnabled={false}
-        showsUserLocation={!!location}
+        showsUserLocation={!!location && !isDebugLocation}
         showsMyLocationButton={false}
         showsCompass={true}
         showsScale={false}
@@ -274,6 +248,17 @@ export default () => {
                 />
               );
             })}
+
+        {isDebugLocation && location && (
+          <Marker
+            coordinate={{
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+            }}
+            title="Debug Location"
+            pinColor="blue"
+          />
+        )}
 
         <Route />
       </MapView>
