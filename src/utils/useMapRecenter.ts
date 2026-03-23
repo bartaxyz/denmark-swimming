@@ -13,7 +13,11 @@ import {
 import { MAP_FIT_PADDING } from "../constants/map";
 import { useSheetIndex } from "../state/useSheetIndex";
 import { boundingBoxOfDenmark, denmarkCenter } from "../constants";
-import { DENMARK_ZOOM, SHEET_HEADER_HEIGHT } from "../constants/map";
+import {
+  BEACH_BBOX_OFFSET,
+  DENMARK_ZOOM,
+  SHEET_HEADER_HEIGHT,
+} from "../constants/map";
 
 type LatLng = { latitude: number; longitude: number };
 
@@ -73,7 +77,15 @@ export function useMapRecenter(
       Math.abs(routeDestination[1] - beach.latitude) < 0.001;
 
     if (routeMatchesBeach && polylineCoordinates && polylineCoordinates.length > 0) {
-      mapRef.current?.fitToCoordinates(polylineCoordinates, {
+      // Include the beach, user location, AND all polyline points
+      const allPoints: LatLng[] = [
+        ...polylineCoordinates,
+        { latitude: beach.latitude, longitude: beach.longitude },
+        ...(userCoords && userInDenmark
+          ? [{ latitude: userCoords.latitude, longitude: userCoords.longitude }]
+          : []),
+      ];
+      mapRef.current?.fitToCoordinates(allPoints, {
         edgePadding: getEdgePadding(),
         animated: true,
       });
@@ -89,8 +101,16 @@ export function useMapRecenter(
       points.push({ latitude: userCoords.latitude, longitude: userCoords.longitude });
     }
 
-    if (points.length > 0) {
-      mapRef.current?.fitToCoordinates(points, {
+    // If only one point, add a small bbox so fitToCoordinates doesn't zoom in too close
+    const fitPoints = points.length === 1
+      ? [
+          { latitude: points[0].latitude - BEACH_BBOX_OFFSET, longitude: points[0].longitude - BEACH_BBOX_OFFSET },
+          { latitude: points[0].latitude + BEACH_BBOX_OFFSET, longitude: points[0].longitude + BEACH_BBOX_OFFSET },
+        ]
+      : points;
+
+    if (fitPoints.length > 0) {
+      mapRef.current?.fitToCoordinates(fitPoints, {
         edgePadding: getEdgePadding(),
         animated: true,
       });
@@ -127,6 +147,19 @@ export function useMapRecenter(
       }
     });
   }, [recenter]);
+
+  // Recenter when a new polyline arrives (only once per polyline)
+  const prevPolylineRef = useRef<typeof polylineCoordinates>(undefined);
+  useEffect(() => {
+    if (
+      polylineCoordinates &&
+      polylineCoordinates.length > 0 &&
+      polylineCoordinates !== prevPolylineRef.current
+    ) {
+      prevPolylineRef.current = polylineCoordinates;
+      recenter();
+    }
+  }, [polylineCoordinates]);
 
   // Recenter when the sheet detent changes
   const prevSheetIndex = useRef(0);

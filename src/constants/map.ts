@@ -23,3 +23,9 @@ export const BEACH_MIN_ZOOM = 12;
 
 /** Minimum altitude when selecting a beach (Apple Maps — lower = more zoomed in) */
 export const BEACH_MAX_ALTITUDE = 5000;
+
+/** Maximum zoom level for recenter (prevents zooming in too close on a single point) */
+export const RECENTER_MAX_ZOOM = 15;
+
+/** Minimum altitude for recenter on Apple Maps (prevents zooming in too close) */
+export const RECENTER_MIN_ALTITUDE = 1000;
