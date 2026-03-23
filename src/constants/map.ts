@@ -17,3 +17,9 @@ export const ZOOM_CHECK_DELAY = 500;
 
 /** Height of the collapsed sheet header (in pixels) */
 export const SHEET_HEADER_HEIGHT = HEADER_HEIGHT;
+
+/** Minimum zoom level when selecting a beach (Google Maps zoom scale) */
+export const BEACH_MIN_ZOOM = 12;
+
+/** Minimum altitude when selecting a beach (Apple Maps — lower = more zoomed in) */
+export const BEACH_MAX_ALTITUDE = 5000;

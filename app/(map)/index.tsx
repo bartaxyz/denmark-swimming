@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { Link, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Position } from "geojson";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -10,38 +10,36 @@ import MapView, {
   Region,
 } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import mapDarkStyle from "../assets/theme/map/dark.json";
-import mapLightStyle from "../assets/theme/map/light.json";
-import { BackgroundDataLoader } from "../src/components/BackgroundDataLoader";
-import { BeachCluster } from "../src/components/BeachCluster";
-import { BeachDetail } from "../src/components/BeachDetail";
-import { CaptchaModal } from "../src/components/CaptchaModal";
-import { HEADER_HEIGHT } from "../src/components/BeachDetailHeader";
-import { BeachMarker } from "../src/components/BeachMarker";
-import { DistanceIndicator } from "../src/components/DistanceIndicator";
-import { IconButton } from "../src/components/IconButton";
-import { LoadingIndicator } from "../src/components/LoadingIndicator";
-import { Route } from "../src/components/Route";
+import mapDarkStyle from "../../assets/theme/map/dark.json";
+import mapLightStyle from "../../assets/theme/map/light.json";
+import { BackgroundDataLoader } from "../../src/components/BackgroundDataLoader";
+import { BeachCluster } from "../../src/components/BeachCluster";
+import { HEADER_HEIGHT } from "../../src/components/BeachDetailHeader";
+import { BeachMarker } from "../../src/components/BeachMarker";
+import { DistanceIndicator } from "../../src/components/DistanceIndicator";
+import { IconButton } from "../../src/components/IconButton";
+import { LoadingIndicator } from "../../src/components/LoadingIndicator";
+import { Route } from "../../src/components/Route";
 import {
   boundingBoxOfDenmark,
   denmarkCenter,
   denmarkNorthEast,
   denmarkSouthWest,
-} from "../src/constants";
-import { DENMARK_ZOOM, LOCATE_ZOOM } from "../src/constants/map";
-import { Mark } from "../src/icons/Mark";
-import { Settings01 } from "../src/icons/Settings01";
-import { PlatformIcon } from "../src/components/PlatformIcon";
-import { usePreferences } from "../src/state/usePreferences";
-import { useSelectedBeach } from "../src/state/useSelectedBeach";
-import { usePalette } from "../src/theme/usePalette";
-import { getCluster } from "../src/utils/getCluster";
-import { useMapRecenter } from "../src/utils/useMapRecenter";
-import { getWaterQualityCounts } from "../src/utils/getWaterQualityCounts";
-import { useDenmarkBeachesData } from "../src/utils/useDenmarkBeachesData";
-import { useLocation } from "../src/utils/useLocation";
-import { Beaches } from "../types";
-import { getSheetDetents } from "../src/utils/getSheetDetents";
+} from "../../src/constants";
+import { DENMARK_ZOOM, LOCATE_ZOOM } from "../../src/constants/map";
+import { Mark } from "../../src/icons/Mark";
+import { Settings01 } from "../../src/icons/Settings01";
+import { PlatformIcon } from "../../src/components/PlatformIcon";
+import { usePreferences } from "../../src/state/usePreferences";
+import { useSelectedBeach } from "../../src/state/useSelectedBeach";
+import { usePalette } from "../../src/theme/usePalette";
+import { getCluster } from "../../src/utils/getCluster";
+import { useMapRecenter } from "../../src/utils/useMapRecenter";
+import { getWaterQualityCounts } from "../../src/utils/getWaterQualityCounts";
+import { useDenmarkBeachesData } from "../../src/utils/useDenmarkBeachesData";
+import { useLocation } from "../../src/utils/useLocation";
+import { Beaches } from "../../types";
+import { getSheetDetents } from "../../src/utils/getSheetDetents";
 
 const initialCamera = {
   center: denmarkCenter,
@@ -52,7 +50,6 @@ const initialCamera = {
 
 export default () => {
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
-  const [showCaptchaModal, setShowCaptchaModal] = useState(false);
   const { foreground } = usePalette();
   const {
     location,
@@ -73,7 +70,6 @@ export default () => {
   );
 
   const sheetDetents = getSheetDetents();
-  const sheetIndexRef = useRef(0);
   const [region, setRegion] = useState<Region | undefined>(undefined);
 
   useEffect(() => {
@@ -102,13 +98,8 @@ export default () => {
     [buttonBottom],
   );
 
-  // Callbacks for BackgroundDataLoader
   const handleNeedsCaptcha = useCallback(() => {
-    setShowCaptchaModal(true);
-  }, []);
-
-  const handleCaptchaSuccess = useCallback(() => {
-    setShowCaptchaModal(false);
+    router.push("/captcha");
   }, []);
 
   const locate = async () => {
@@ -164,18 +155,17 @@ export default () => {
     }
   };
 
-  const { recenterMap } = useMapRecenter(
-    mapViewRef,
-    sheetDetents,
-    sheetIndexRef,
-  );
+  const { recenterMap } = useMapRecenter(mapViewRef, sheetDetents);
 
-  const handleSheetChange = (index: number) => {
-    if (sheetIndexRef.current !== index) {
-      sheetIndexRef.current = index;
-      recenterMap(true);
+  // Show the sheet on mount and keep it in sync with beach selection
+  const sheetShown = useRef(false);
+  useEffect(() => {
+    // Present the sheet on initial render
+    if (!sheetShown.current) {
+      sheetShown.current = true;
+      router.push("/(map)/beach-detail");
     }
-  };
+  }, []);
 
   const onMapPress = (event: MapPressEvent) => {
     if (event.nativeEvent.action !== "marker-press") {
@@ -203,13 +193,6 @@ export default () => {
 
       <BackgroundDataLoader
         onNeedsCaptcha={handleNeedsCaptcha}
-        onSuccess={handleCaptchaSuccess}
-      />
-
-      <CaptchaModal
-        visible={showCaptchaModal}
-        onClose={() => setShowCaptchaModal(false)}
-        onSuccess={handleCaptchaSuccess}
       />
 
       <MapView
@@ -297,19 +280,15 @@ export default () => {
 
       <SafeAreaView style={styles.fillNoPointerEvents}>
         <View style={styles.fillRelativeNoPointerEvents}>
-          <IconButton
-            style={settingsButtonStyles}
-            size="L"
-            onPress={() => {
-              router.push("/settings");
-            }}
-          >
-            <PlatformIcon
-              iosName="gearshape"
-              fallback={<Settings01 stroke={foreground} />}
-              color={foreground}
-            />
-          </IconButton>
+          <Link href="/settings" asChild>
+            <IconButton style={settingsButtonStyles} size="L">
+              <PlatformIcon
+                iosName="gearshape"
+                fallback={<Settings01 stroke={foreground} />}
+                color={foreground}
+              />
+            </IconButton>
+          </Link>
 
           <IconButton style={locateButtonStyles} onPress={locate} size="L">
             <PlatformIcon
@@ -326,9 +305,6 @@ export default () => {
         <DistanceIndicator />
       </View>
 
-      <View style={styles.fillNoPointerEvents}>
-        <BeachDetail onChange={handleSheetChange} />
-      </View>
     </>
   );
 };

@@ -45,6 +45,7 @@ const expo: ExpoConfig = {
     bundleIdentifier: "com.ondrejbarta.denmarkswimming",
     buildNumber: version,
     supportsTablet: true,
+    appleTeamId: "73N8SZQ662",
     splash,
     userInterfaceStyle,
     infoPlist: {

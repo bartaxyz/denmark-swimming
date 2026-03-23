@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelectedBeach } from "../state/useSelectedBeach";
 import { useLocation } from "./useLocation";
 import { useDenmarkBeachesData } from "./useDenmarkBeachesData";
+import { useSelectedRoute } from "./useSelectedRoute";
 import {
   ThresholdType,
   getPassedDistanceThreshold,
@@ -15,18 +16,26 @@ import {
   BEACH_BBOX_OFFSET,
   ZOOM_CHECK_DELAY,
   SHEET_HEADER_HEIGHT,
+  BEACH_MIN_ZOOM,
+  BEACH_MAX_ALTITUDE,
 } from "../constants/map";
+import { useSheetIndex } from "../state/useSheetIndex";
 
 type LatLng = { latitude: number; longitude: number };
 
-/** Check if the camera zoomed out compared to a previous snapshot */
+/** Check if camera is zoomed out too far for viewing a beach */
+function isTooFarOut(camera: Camera): boolean {
+  if (camera.zoom != null) return camera.zoom < BEACH_MIN_ZOOM;
+  if (camera.altitude != null) return camera.altitude > BEACH_MAX_ALTITUDE;
+  return false;
+}
+
 function didZoomOut(before: Camera, after: Camera): boolean {
   if (before.zoom != null) return (after.zoom ?? 0) < before.zoom;
   if (before.altitude != null) return (after.altitude ?? 0) > before.altitude;
   return false;
 }
 
-/** Preserve the zoom/altitude from a camera snapshot */
 function preserveZoomProps(camera: Camera) {
   return {
     ...(camera.zoom != null ? { zoom: camera.zoom } : {}),
@@ -34,13 +43,27 @@ function preserveZoomProps(camera: Camera) {
   };
 }
 
+function getEdgePadding(
+  insets: { top: number; right: number; bottom: number; left: number },
+  sheetFraction: number,
+  screenHeight: number,
+) {
+  const sheetPixels = sheetFraction * screenHeight;
+  return {
+    top: MAP_FIT_PADDING + insets.top,
+    right: MAP_FIT_PADDING + insets.right,
+    bottom: sheetPixels + MAP_FIT_PADDING,
+    left: MAP_FIT_PADDING + insets.left,
+  };
+}
+
 export function useMapRecenter(
   mapRef: React.RefObject<MapView | null>,
   sheetDetents: number[],
-  sheetIndexRef: React.RefObject<number>,
 ) {
   const { beaches } = useDenmarkBeachesData();
   const { location } = useLocation();
+  const { polylineCoordinates } = useSelectedRoute();
   const insets = useSafeAreaInsets();
   const dimensions = useWindowDimensions();
   const prevBeachRef = useRef<number | undefined>(undefined);
@@ -50,14 +73,22 @@ export function useMapRecenter(
     return beaches.find((b) => b.id === id);
   }, [beaches]);
 
-  /** Pan to the beach, offset for the sheet, preserving current zoom */
+  const getSheetFraction = useCallback(
+    () => sheetDetents[useSheetIndex.getState().index] ?? 0,
+    [sheetDetents],
+  );
+
+  /** Pan to the beach offset for the sheet, preserving zoom */
   const panToBeach = useCallback(
     async (beach: LatLng) => {
       const camera = await mapRef.current?.getCamera();
       if (!camera) return;
 
-      const sheetFraction = sheetDetents[sheetIndexRef.current] ?? 0;
-      const latOffset = getSheetLatitudeOffset(camera, sheetFraction, beach.latitude);
+      const latOffset = getSheetLatitudeOffset(
+        camera,
+        getSheetFraction(),
+        beach.latitude,
+      );
 
       mapRef.current?.animateCamera({
         center: {
@@ -67,41 +98,48 @@ export function useMapRecenter(
         ...preserveZoomProps(camera),
       });
     },
-    [mapRef, sheetDetents, sheetIndexRef],
+    [mapRef, getSheetFraction],
   );
 
-  /** Zoom to fit beach + user location, never zooms out */
+  /** Fit coordinates in the visible area above the sheet */
+  const fitCoordinates = useCallback(
+    (coordinates: LatLng[]) => {
+      const edgePadding = getEdgePadding(
+        insets,
+        getSheetFraction(),
+        dimensions.height,
+      );
+
+      mapRef.current?.fitToCoordinates(coordinates, {
+        edgePadding,
+        animated: true,
+      });
+    },
+    [mapRef, insets, dimensions.height, getSheetFraction],
+  );
+
+  /** Zoom to fit beach (+ route or user location), never zooms out */
   const zoomToBeach = useCallback(
     async (beach: LatLng) => {
       const cameraBefore = await mapRef.current?.getCamera();
 
-      const userNearby =
-        location &&
-        !getPassedDistanceThreshold(
-          ThresholdType.Zoom,
-          [location.coords.longitude, location.coords.latitude],
-          [beach.longitude, beach.latitude],
-        );
-
-      const coordinates: LatLng[] = [
-        beach,
-        ...(userNearby
-          ? [{ latitude: location!.coords.latitude, longitude: location!.coords.longitude }]
-          : [
-              { latitude: beach.latitude - BEACH_BBOX_OFFSET, longitude: beach.longitude - BEACH_BBOX_OFFSET },
-              { latitude: beach.latitude + BEACH_BBOX_OFFSET, longitude: beach.longitude + BEACH_BBOX_OFFSET },
-            ]),
-      ];
-
-      mapRef.current?.fitToCoordinates(coordinates, {
-        edgePadding: {
-          top: MAP_FIT_PADDING + insets.top,
-          right: MAP_FIT_PADDING + insets.right,
-          bottom: SHEET_HEADER_HEIGHT + insets.bottom + MAP_FIT_PADDING,
-          left: MAP_FIT_PADDING + insets.left,
-        },
-        animated: true,
-      });
+      if (polylineCoordinates && polylineCoordinates.length > 0) {
+        // Route active — fit the entire polyline
+        fitCoordinates(polylineCoordinates);
+      } else {
+        // No route — center on the beach, zoom in if too far out
+        const camera = await mapRef.current?.getCamera();
+        if (camera && isTooFarOut(camera)) {
+          mapRef.current?.animateCamera({
+            center: { latitude: beach.latitude, longitude: beach.longitude },
+            ...(camera.zoom != null ? { zoom: BEACH_MIN_ZOOM } : {}),
+            ...(camera.altitude != null ? { altitude: BEACH_MAX_ALTITUDE } : {}),
+          });
+        } else {
+          panToBeach(beach);
+        }
+        return;
+      }
 
       // Revert if it zoomed out
       if (cameraBefore) {
@@ -113,7 +151,7 @@ export function useMapRecenter(
         }, ZOOM_CHECK_DELAY);
       }
     },
-    [mapRef, location, insets, panToBeach],
+    [mapRef, location, polylineCoordinates, fitCoordinates, panToBeach],
   );
 
   const recenterMap = useCallback(
@@ -125,7 +163,7 @@ export function useMapRecenter(
     [getSelectedBeach, panToBeach, zoomToBeach],
   );
 
-  // Zoom-to-fit when a new beach is selected
+  // Zoom-to-fit when a new beach is selected, collapse sheet when deselected
   useEffect(() => {
     return useSelectedBeach.subscribe(({ selectedBeachId }) => {
       if (selectedBeachId && selectedBeachId !== prevBeachRef.current) {
@@ -133,6 +171,17 @@ export function useMapRecenter(
         recenterMap(false);
       } else if (!selectedBeachId) {
         prevBeachRef.current = undefined;
+      }
+    });
+  }, [recenterMap]);
+
+  // Recenter (preserve zoom) when the sheet detent changes
+  const prevSheetIndex = useRef(0);
+  useEffect(() => {
+    return useSheetIndex.subscribe(({ index }) => {
+      if (index !== prevSheetIndex.current) {
+        prevSheetIndex.current = index;
+        recenterMap(true);
       }
     });
   }, [recenterMap]);
