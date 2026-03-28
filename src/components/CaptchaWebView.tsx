@@ -4,11 +4,11 @@ import {
   ActivityIndicator,
   Platform,
   Pressable,
-  SafeAreaView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 import { Beaches } from "../../types";
 import { WEBSITE_URL } from "../constants/api";

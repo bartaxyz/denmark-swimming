@@ -2,7 +2,14 @@ import { Link, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Position } from "geojson";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Linking, StyleSheet, View, useColorScheme } from "react-native";
+import {
+  Alert,
+  Linking,
+  Platform,
+  StyleSheet,
+  View,
+  useColorScheme,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapView, {
   MapPressEvent,
@@ -10,7 +17,6 @@ import MapView, {
   PROVIDER_GOOGLE,
   Region,
 } from "react-native-maps";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import mapDarkStyle from "../../assets/theme/map/dark.json";
 import mapLightStyle from "../../assets/theme/map/light.json";
 import { BackgroundDataLoader } from "../../src/components/BackgroundDataLoader";
@@ -49,7 +55,6 @@ const initialCamera = {
 };
 
 export default () => {
-  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   const { foreground } = usePalette();
   const {
     location,
@@ -62,25 +67,23 @@ export default () => {
   const mapViewRef = useRef<MapView>(null);
   const colorScheme = useColorScheme();
 
-  const performanceMode = usePreferences((state) => state.performanceMode);
+  const { performanceMode, mapsProvider, disableCustomMapStyles } =
+    usePreferences();
   const setSelectedBeachId = useSelectedBeach(
     (state) => state.setSelectedBeachId,
-  );
-  const mapProvider = usePreferences((state) => state.mapsProvider);
-  const disableCustomMapStyles = usePreferences(
-    (state) => state.disableCustomMapStyles,
   );
 
   const sheetDetents = getSheetDetents();
   const [region, setRegion] = useState<Region | undefined>(undefined);
 
   useEffect(() => {
-    if (mapProvider === PROVIDER_GOOGLE) {
+    if (mapsProvider === PROVIDER_GOOGLE) {
       mapViewRef.current?.setMapBoundaries(denmarkNorthEast, denmarkSouthWest);
     }
-  }, [mapViewRef, mapProvider]);
+  }, [mapViewRef, mapsProvider]);
 
-  const buttonBottom = HEADER_HEIGHT;
+  const buttonBottom =
+    HEADER_HEIGHT + Platform.select({ android: 16, default: 0 });
 
   const settingsButtonStyles = useMemo(
     () => ({
@@ -131,16 +134,6 @@ export default () => {
     recenter();
   };
 
-  // Show the sheet on mount and keep it in sync with beach selection
-  const sheetShown = useRef(false);
-  useEffect(() => {
-    // Present the sheet on initial render
-    if (!sheetShown.current) {
-      sheetShown.current = true;
-      router.push("/(map)/beach-detail");
-    }
-  }, []);
-
   const onMapPress = (event: MapPressEvent) => {
     if (event.nativeEvent.action !== "marker-press") {
       setSelectedBeachId();
@@ -159,23 +152,26 @@ export default () => {
     });
   };
 
-  const { cluster, markers } = getCluster(beaches, region, performanceMode);
+  const { cluster, markers } = useMemo(() => {
+    return getCluster(beaches, region, performanceMode);
+  }, [beaches, region, performanceMode]);
 
   return (
     <>
       <StatusBar style="auto" />
 
-      <BackgroundDataLoader
-        onNeedsCaptcha={handleNeedsCaptcha}
-      />
+      <BackgroundDataLoader onNeedsCaptcha={handleNeedsCaptcha} />
 
       <MapView
         ref={mapViewRef}
         style={styles.map}
         userInterfaceStyle={colorScheme === "dark" ? "dark" : "light"}
-        minZoomLevel={6.5}
-        maxZoomLevel={20}
-        zoomControlEnabled={false}
+        cameraZoomRange={{
+          minCenterCoordinateDistance: 6.5,
+          maxCenterCoordinateDistance: 20,
+          animated: true,
+        }}
+        zoomControlEnabled={true}
         showsUserLocation={!!location && !isDebugLocation}
         showsMyLocationButton={false}
         showsCompass={true}
@@ -190,7 +186,7 @@ export default () => {
               ? mapDarkStyle
               : mapLightStyle
         }
-        provider={mapProvider}
+        provider={mapsProvider}
         onPress={onMapPress}
         initialCamera={initialCamera}
         onRegionChangeComplete={setRegion}
@@ -289,7 +285,6 @@ export default () => {
         <LoadingIndicator />
         <DistanceIndicator />
       </View>
-
     </>
   );
 };

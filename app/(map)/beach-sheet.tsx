@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import {
   ActivityIndicator,
   Linking,
@@ -13,11 +12,14 @@ import { Route } from "../../src/icons/Route";
 import { useSelectedBeach } from "../../src/state/useSelectedBeach";
 import { usePalette } from "../../src/theme/usePalette";
 import { useDenmarkBeachesData } from "../../src/utils/useDenmarkBeachesData";
-import { BeachDetailHeader, HEADER_HEIGHT } from "../../src/components/BeachDetailHeader";
+import {
+  BeachDetailHeader,
+  HEADER_HEIGHT,
+} from "../../src/components/BeachDetailHeader";
 import { BeachDetailInfo } from "../../src/components/BeachDetailInfo";
 import { Button } from "../../src/components/Button";
 
-export default function BeachDetailScreen() {
+export default function BeachSheetScreen() {
   const { foreground } = usePalette();
   const insets = useSafeAreaInsets();
   const navigation = useTrueSheetNavigation();
@@ -27,16 +29,6 @@ export default function BeachDetailScreen() {
 
   const selectedBeach = beaches.find((beach) => beach.id === selectedBeachId);
   const today = selectedBeach?.data?.[0];
-
-  // Collapse and lock when no beach is selected
-  useEffect(() => {
-    if (!selectedBeachId) {
-      navigation.resize(0);
-      navigation.setOptions({ draggable: false });
-    } else {
-      navigation.setOptions({ draggable: true });
-    }
-  }, [selectedBeachId, navigation]);
 
   const toggleBeachDetail = () => {
     navigation.resize(1);
@@ -66,17 +58,21 @@ export default function BeachDetailScreen() {
         <>
           <View style={styles.contentContainer}>
             <View style={styles.actionsBar}>
-              <Button
-                onPress={() => {
-                  Linking.openURL(
-                    `https://www.google.com/maps/dir/?api=1&destination=${selectedBeach.latitude},${selectedBeach.longitude}`,
-                  );
-                }}
-                leadingIcon={<Route stroke={foreground} width={16} height={16} />}
-                style={styles.actionsBarAction}
-              >
-                Directions
-              </Button>
+              {selectedBeach.latitude && selectedBeach.longitude && (
+                <Button
+                  onPress={() => {
+                    Linking.openURL(
+                      `https://www.google.com/maps/dir/?api=1&destination=${selectedBeach.latitude},${selectedBeach.longitude}`,
+                    );
+                  }}
+                  leadingIcon={
+                    <Route stroke={foreground} width={16} height={16} />
+                  }
+                  style={styles.actionsBarAction}
+                >
+                  Directions
+                </Button>
+              )}
 
               {selectedBeach.municipality_url && (
                 <Button
@@ -129,8 +125,9 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: 24,
     paddingTop: 0,
-    paddingBottom: 0,
     gap: 4,
+    borderBottomColor: "rgba(0, 0, 0, 0.1)",
+    borderBottomWidth: 1,
   },
   actionsBar: {
     flexDirection: "row",

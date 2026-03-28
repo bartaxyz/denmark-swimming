@@ -1,5 +1,5 @@
 import { rgba } from "polished";
-import { FC, PropsWithChildren } from "react";
+import { FC } from "react";
 import {
   Platform,
   Pressable,
@@ -73,7 +73,7 @@ export default () => {
   );
 };
 
-const TransportationModeRow: FC = ({}) => {
+const TransportationModeRow: FC = () => {
   const transportationMode = usePreferences(
     (state) => state.transportationMode,
   );
@@ -115,7 +115,7 @@ const TransportationModeRow: FC = ({}) => {
   );
 };
 
-const MapsProviderRow: FC<PropsWithChildren> = ({ children }) => {
+const MapsProviderRow: FC = () => {
   const mapsProvider = usePreferences((state) => state.mapsProvider);
   const setMapsProvider = usePreferences((state) => state.setMapsProvider);
 
@@ -139,7 +139,7 @@ const MapsProviderRow: FC<PropsWithChildren> = ({ children }) => {
   );
 };
 
-const DisableCustomMapStylesRow: FC<PropsWithChildren> = ({ children }) => {
+const DisableCustomMapStylesRow: FC = () => {
   const disableCustomMapStyles = usePreferences(
     (state) => state.disableCustomMapStyles,
   );
@@ -165,7 +165,7 @@ const DisableCustomMapStylesRow: FC<PropsWithChildren> = ({ children }) => {
   );
 };
 
-const PerformanceModeRow: FC<PropsWithChildren> = ({ children }) => {
+const PerformanceModeRow: FC = () => {
   const performanceMode = usePreferences((state) => state.performanceMode);
   const setPerformanceMode = usePreferences(
     (state) => state.setPerformanceMode,
@@ -219,10 +219,16 @@ const DebugLocationRow: FC = () => {
   return (
     <Row
       title="Debug: Fake Location (Copenhagen)"
-      subtitle={isActive ? "Using fake location in Copenhagen" : "Tap to simulate being in Denmark"}
+      subtitle={
+        isActive
+          ? "Using fake location in Copenhagen"
+          : "Tap to simulate being in Denmark"
+      }
       onPress={toggle}
     >
-      <Text style={{ color: foreground, fontSize: 14 }}>{isActive ? "On" : "Off"}</Text>
+      <Text style={{ color: foreground, fontSize: 14 }}>
+        {isActive ? "On" : "Off"}
+      </Text>
     </Row>
   );
 };
@@ -246,7 +252,7 @@ const RefreshDataRow: FC = () => {
   );
 };
 
-const StyledSwitch: FC<SwitchProps> = ({ children, ...props }) => {
+const StyledSwitch: FC<SwitchProps> = (props) => {
   const { foreground, markers } = usePalette();
 
   return (

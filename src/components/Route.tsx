@@ -30,5 +30,4 @@ export const Route: FC = memo(
       />
     );
   },
-  () => false
 );

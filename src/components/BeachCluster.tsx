@@ -36,7 +36,7 @@ export const BeachCluster: FC<BeachClusterProps> = ({
 
   const waterQualityKeys = useMemo(
     () => Object.keys(waterQualityCounts) as WaterQuality[],
-    [waterQualityCounts]
+    [waterQualityCounts],
   );
 
   const { mapMarker, isSelected } = useStaticMarker(beachIds);
@@ -57,7 +57,7 @@ export const BeachCluster: FC<BeachClusterProps> = ({
             position: "relative",
             borderColor: rgba(foreground, 0.1),
             borderWidth: 1,
-            borderRadius: 16,
+            borderRadius: 32,
           }}
         >
           <View
@@ -69,10 +69,10 @@ export const BeachCluster: FC<BeachClusterProps> = ({
               // scale padding with the number of beaches in the cluster
               padding: 2 + Math.log(pointsCount) * 2,
               paddingHorizontal: 8 + Math.log(pointsCount) * 2,
-              borderRadius: 16,
+              borderRadius: 32,
             }}
           >
-            {waterQualityKeys.map((key, index) => {
+            {waterQualityKeys.map((key) => {
               const waterQualityCount = waterQualityCounts[key as WaterQuality];
 
               if (waterQualityCount === 0) {
@@ -95,7 +95,7 @@ export const BeachCluster: FC<BeachClusterProps> = ({
               {
                 position: "absolute",
                 zIndex: 64,
-                borderRadius: 100,
+                borderRadius: 32,
                 top: 0,
                 left: 0,
                 right: 0,

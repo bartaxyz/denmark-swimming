@@ -1,9 +1,7 @@
 import { TrueSheet } from "@lodev09/react-native-true-sheet";
-import { rgba } from "polished";
 import { FC, useEffect, useRef } from "react";
 import {
   ActivityIndicator,
-  Dimensions,
   Linking,
   ScrollView,
   StyleSheet,
@@ -26,7 +24,6 @@ export interface BeachDetailProps {
   onChange?: (index: number) => void;
 }
 
-
 export const BeachDetail: FC<BeachDetailProps> = ({ onChange }) => {
   const { foreground } = usePalette();
   const insets = useSafeAreaInsets();
@@ -39,20 +36,6 @@ export const BeachDetail: FC<BeachDetailProps> = ({ onChange }) => {
   const today = selectedBeach?.data?.[0];
 
   const sheetRef = useRef<TrueSheet>(null);
-
-  // Present on mount
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      sheetRef.current?.present(0).catch(() => {});
-    }, 100);
-    return () => clearTimeout(timeout);
-  }, []);
-
-  useEffect(() => {
-    if (selectedBeach) {
-      sheetRef.current?.resize(0).catch(() => {});
-    }
-  }, [selectedBeach]);
 
   const toggleBeachDetail = () => {
     sheetRef.current?.resize(1).catch(() => {});
@@ -79,7 +62,7 @@ export const BeachDetail: FC<BeachDetailProps> = ({ onChange }) => {
   return (
     <TrueSheet
       ref={sheetRef}
-      name="beach-detail"
+      name="beach-sheet"
       detents={sheetDetents}
       initialDetentIndex={-1}
       grabber={true}
@@ -90,45 +73,49 @@ export const BeachDetail: FC<BeachDetailProps> = ({ onChange }) => {
       header={headerContent}
       headerStyle={styles.headerContainer}
     >
-      <View style={styles.contentContainer}>
-        <View style={styles.actionsBar}>
-          <Button
-            onPress={() => {
-              Linking.openURL(
-                `https://www.google.com/maps/dir/?api=1&destination=${selectedBeach?.latitude},${selectedBeach?.longitude}`,
-              );
-            }}
-            leadingIcon={<Route stroke={foreground} width={16} height={16} />}
-            style={styles.actionsBarAction}
-          >
-            Directions
-          </Button>
-
-          {selectedBeach?.municipality_url && (
-            <Button
-              onPress={() => {
-                const url =
-                  selectedBeach?.municipality_url.match(
-                    /href=["'](.*)["']/,
-                  )?.[1] || undefined;
-
-                if (!url) return;
-
-                Linking.openURL(url);
-              }}
-              style={styles.actionsBarAction}
-            >
-              {selectedBeach?.municipality} Website
-            </Button>
-          )}
-        </View>
-      </View>
-
       <ScrollView
         contentContainerStyle={{
           paddingBottom: insets.bottom,
         }}
       >
+        <View style={styles.contentContainer}>
+          <View style={styles.actionsBar}>
+            {selectedBeach?.latitude && selectedBeach?.longitude && (
+              <Button
+                onPress={() => {
+                  Linking.openURL(
+                    `https://www.google.com/maps/dir/?api=1&destination=${selectedBeach?.latitude},${selectedBeach?.longitude}`,
+                  );
+                }}
+                leadingIcon={
+                  <Route stroke={foreground} width={16} height={16} />
+                }
+                style={styles.actionsBarAction}
+              >
+                Directions
+              </Button>
+            )}
+
+            {selectedBeach?.municipality_url && (
+              <Button
+                onPress={() => {
+                  const url =
+                    selectedBeach?.municipality_url.match(
+                      /href=["'](.*)["']/,
+                    )?.[1] || undefined;
+
+                  if (!url) return;
+
+                  Linking.openURL(url);
+                }}
+                style={styles.actionsBarAction}
+              >
+                {selectedBeach?.municipality} Website
+              </Button>
+            )}
+          </View>
+        </View>
+
         <BeachDetailInfo beach={selectedBeach} />
       </ScrollView>
     </TrueSheet>
