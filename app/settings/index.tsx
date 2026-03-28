@@ -64,7 +64,7 @@ export default () => {
 
         {__DEV__ && (
           <>
-            <DebugLocationRow />
+            <DebugModeRow />
             <Divider />
           </>
         )}
@@ -189,17 +189,15 @@ const PerformanceModeRow: FC = () => {
   );
 };
 
-const DebugLocationRow: FC = () => {
-  const { foreground } = usePalette();
-  const debugLocation = useLocationStore((s) => s.debugLocation);
+const DebugModeRow: FC = () => {
+  const debugMode = usePreferences((state) => state.debugMode);
+  const setDebugMode = usePreferences((state) => state.setDebugMode);
   const setDebugLocation = useLocationStore((s) => s.setDebugLocation);
 
-  const isActive = !!debugLocation;
-
   const toggle = () => {
-    if (isActive) {
-      setDebugLocation(null);
-    } else {
+    const next = !debugMode;
+    setDebugMode(next);
+    if (next) {
       // Copenhagen, Denmark
       setDebugLocation({
         coords: {
@@ -213,22 +211,18 @@ const DebugLocationRow: FC = () => {
         },
         timestamp: Date.now(),
       });
+    } else {
+      setDebugLocation(null);
     }
   };
 
   return (
     <Row
-      title="Debug: Fake Location (Copenhagen)"
-      subtitle={
-        isActive
-          ? "Using fake location in Copenhagen"
-          : "Tap to simulate being in Denmark"
-      }
+      title="Debug Mode"
+      subtitle="Fake location (Copenhagen), recenter fit area overlay, and zoom debug info."
       onPress={toggle}
     >
-      <Text style={{ color: foreground, fontSize: 14 }}>
-        {isActive ? "On" : "Off"}
-      </Text>
+      <StyledSwitch value={debugMode} onValueChange={toggle} />
     </Row>
   );
 };

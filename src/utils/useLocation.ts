@@ -3,6 +3,7 @@ import * as Location from "expo-location";
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { useMapActions } from "../state/useMapActions";
 
 interface LocationStoreState {
   location: Location.LocationObject | null;
@@ -17,7 +18,10 @@ export const useLocationStore = create<LocationStoreState>()(
   persist(
     (set) => ({
       location: null,
-      setLocation: (location) => set({ location }),
+      setLocation: (location) => {
+        set({ location });
+        useMapActions.getState().recenter();
+      },
       status: null,
       setStatus: (status) => set({ status }),
       debugLocation: null,

@@ -12,6 +12,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { usePalette } from "../theme/usePalette";
 import { GlassView } from "expo-glass-effect";
 
+export const TOP_INDICATOR_MARGIN_TOP = 16;
+export const TOP_INDICATOR_MIN_HEIGHT = 32;
+
 export interface TopIndicatorProps extends PropsWithChildren {
   title?: string;
   subtitle?: string;
@@ -41,7 +44,7 @@ export const TopIndicator: FC<TopIndicatorProps> = ({
       justifyContent: "center" as const,
       alignItems: "center" as const,
       borderRadius,
-      marginTop: 16,
+      marginTop: TOP_INDICATOR_MARGIN_TOP,
       overflow: "hidden",
       ...Platform.select({
         android: {
@@ -58,7 +61,7 @@ export const TopIndicator: FC<TopIndicatorProps> = ({
       width: 32,
     },
     headerInfo: {
-      minHeight: 32,
+      minHeight: TOP_INDICATOR_MIN_HEIGHT,
       padding: 4,
       paddingLeft: 16,
       paddingRight: 16,

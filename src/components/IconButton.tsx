@@ -1,13 +1,10 @@
 import { GlassView } from "expo-glass-effect";
 import { rgba } from "polished";
 import { forwardRef } from "react";
-import {
-  Platform,
-  Pressable,
-  View,
-  ViewStyle,
-} from "react-native";
+import { Platform, Pressable, StyleSheet, View } from "react-native";
 import { usePalette } from "../theme/usePalette";
+
+export const ICON_BUTTON_SIZES = { M: 40, L: 48 } as const;
 
 export interface IconButtonProps {
   children: React.ReactNode;
@@ -20,20 +17,29 @@ export const IconButton = forwardRef<View, IconButtonProps>(
   ({ children, onPress, size = "M", style }, ref) => {
     const { foreground, background } = usePalette();
 
-    const dimension = size === "M" ? 40 : 48;
+    const dimension = ICON_BUTTON_SIZES[size];
 
-    const baseStyle: ViewStyle = {
-      width: dimension,
-      height: dimension,
-      borderRadius: 64,
-      alignItems: "center",
-      justifyContent: "center",
-      overflow: "hidden",
-      ...Platform.select({
-        android: { backgroundColor: background, elevation: 2 },
-        default: {},
-      }),
-    };
+    const styles = StyleSheet.create({
+      baseStyle: {
+        width: dimension,
+        height: dimension,
+        borderRadius: 64,
+        ...Platform.select({
+          android: {
+            backgroundColor: background,
+            elevation: 2,
+            overflow: "hidden",
+          },
+          default: {},
+        }),
+      },
+      glassStyle: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: 64,
+      },
+    });
 
     return (
       <Pressable
@@ -41,14 +47,14 @@ export const IconButton = forwardRef<View, IconButtonProps>(
         onPress={onPress || ((event) => event.preventDefault())}
         android_ripple={{ color: rgba(foreground, 0.2), foreground: true }}
         style={({ pressed }) => [
-          baseStyle,
+          styles.baseStyle,
           Platform.OS === "ios" && { opacity: pressed ? 0.5 : 1 },
           style,
         ]}
       >
         <GlassView
           {...(Platform.OS === "ios" ? { isInteractive: true } : {})}
-          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+          style={styles.glassStyle}
         >
           {children}
         </GlassView>

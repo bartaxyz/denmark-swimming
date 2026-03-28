@@ -1,6 +1,9 @@
+import Polyline from "@mapbox/polyline";
 import useSWR, { Fetcher } from "swr";
 import env from "../env";
 import { TransportationMode } from "../state/usePreferences";
+import { useMapActions } from "../state/useMapActions";
+import { useRouteData } from "../state/useRouteData";
 import {
   ThresholdType,
   getPassedDistanceThreshold,
@@ -8,19 +11,19 @@ import {
 
 interface Distance {
   text: string;
-  value: 44390;
+  value: number;
 }
 interface Duration {
   text: string;
-  value: 2423;
+  value: number;
 }
 
 interface ResponseLegs {
   distance: Distance;
   duration: Duration;
-  end_address: "Strandalleen 2, 3000 Helsingør, Denmark";
+  end_address: string;
   end_location: object;
-  start_address: "Rådmandsgade 53B, 2200 København, Denmark";
+  start_address: string;
   start_location: object;
   steps: any[];
   traffic_speed_entry: any[];
@@ -49,9 +52,6 @@ export const useFetchRoute = (
   destination?: GeoJSON.Position,
   transportationMode?: TransportationMode
 ) => {
-  /**
-   * Avoid fetching long routes. They're not practical for the user anyway.
-   */
   const hasPassedDistanceThreshold = getPassedDistanceThreshold(
     ThresholdType.Route,
     origin,
@@ -63,9 +63,42 @@ export const useFetchRoute = (
     ? `https://maps.googleapis.com/maps/api/directions/json?origin=${origin[1]},${origin[0]}&destination=${destination[1]},${destination[0]}&key=${env.googleMapsApiKey}&mode=${transportationMode}`
     : null;
 
+  const { setRouteData, clearRouteData } = useRouteData();
+
   const { data: routeData, ...args } = useSWR<Response>(
     key,
-    denmarkBeachesFetcher
+    denmarkBeachesFetcher,
+    {
+      onSuccess: (data) => {
+        const route = data?.routes[0];
+        if (!route?.overview_polyline.points) {
+          clearRouteData();
+          return;
+        }
+
+        const points = Polyline.decode(route.overview_polyline.points);
+        const coords = points.map((point) => ({
+          latitude: point[0],
+          longitude: point[1],
+        }));
+
+        // Only recenter when the route actually changed
+        const prevCoords = useRouteData.getState().polylineCoordinates;
+        const changed =
+          !prevCoords || prevCoords.length !== coords.length;
+
+        setRouteData({
+          polylineCoordinates: coords,
+          destination,
+          distance: route.legs[0].distance,
+          duration: route.legs[0].duration,
+        });
+
+        if (changed) {
+          useMapActions.getState().recenter();
+        }
+      },
+    }
   );
 
   return { routeData, ...args };

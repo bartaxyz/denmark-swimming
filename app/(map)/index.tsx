@@ -1,10 +1,15 @@
 import { Link, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Position } from "geojson";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Alert,
-  Linking,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefCallback,
+} from "react";
+import {
   Platform,
   StyleSheet,
   View,
@@ -20,6 +25,11 @@ import MapView, {
 import mapDarkStyle from "../../assets/theme/map/dark.json";
 import mapLightStyle from "../../assets/theme/map/light.json";
 import { BackgroundDataLoader } from "../../src/components/BackgroundDataLoader";
+import {
+  DebugFitAreaPolygon,
+  DebugInfoHUD,
+  DebugViewportRect,
+} from "../../src/components/DebugOverlay";
 import { BeachCluster } from "../../src/components/BeachCluster";
 import { HEADER_HEIGHT } from "../../src/components/BeachDetailHeader";
 import { BeachMarker } from "../../src/components/BeachMarker";
@@ -40,12 +50,12 @@ import { usePreferences } from "../../src/state/usePreferences";
 import { useSelectedBeach } from "../../src/state/useSelectedBeach";
 import { usePalette } from "../../src/theme/usePalette";
 import { getCluster } from "../../src/utils/getCluster";
-import { useMapRecenter } from "../../src/utils/useMapRecenter";
+import { useMapRef } from "../../src/state/useMapRef";
 import { getWaterQualityCounts } from "../../src/utils/getWaterQualityCounts";
 import { useDenmarkBeachesData } from "../../src/utils/useDenmarkBeachesData";
+import { useLocate } from "../../src/utils/useLocate";
 import { useLocation, useLocationStore } from "../../src/utils/useLocation";
 import { Beaches } from "../../types";
-import { getSheetDetents } from "../../src/utils/getSheetDetents";
 
 const initialCamera = {
   center: denmarkCenter,
@@ -56,15 +66,20 @@ const initialCamera = {
 
 export default () => {
   const { foreground } = usePalette();
-  const {
-    location,
-    status: locationStatus,
-    retryRequestPermissions,
-  } = useLocation();
+  const { location } = useLocation();
   const { beaches } = useDenmarkBeachesData();
+  const debugMode = usePreferences((s) => s.debugMode);
   const debugLocation = useLocationStore((s) => s.debugLocation);
-  const isDebugLocation = __DEV__ && !!debugLocation;
+  const isDebugLocation = __DEV__ && debugMode && !!debugLocation;
   const mapViewRef = useRef<MapView>(null);
+  const setMapView = useMapRef((s) => s.setMapView);
+  const mapRefCallback: RefCallback<MapView> = useCallback(
+    (instance) => {
+      mapViewRef.current = instance;
+      setMapView(instance);
+    },
+    [setMapView],
+  );
   const colorScheme = useColorScheme();
 
   const { performanceMode, mapsProvider, disableCustomMapStyles } =
@@ -73,7 +88,6 @@ export default () => {
     (state) => state.setSelectedBeachId,
   );
 
-  const sheetDetents = getSheetDetents();
   const [region, setRegion] = useState<Region | undefined>(undefined);
 
   useEffect(() => {
@@ -107,32 +121,7 @@ export default () => {
     router.push("/captcha");
   }, []);
 
-  const { recenter } = useMapRecenter(mapViewRef, sheetDetents);
-
-  const locate = async () => {
-    if (
-      !location &&
-      locationStatus === "denied" &&
-      !(await retryRequestPermissions())
-    ) {
-      Alert.alert(
-        "Enable location permissions",
-        "Please enable location permissions in your settings to use this feature",
-        [
-          { text: "Cancel", style: "cancel" },
-          { text: "Open settings", onPress: Linking.openSettings },
-        ],
-      );
-      return;
-    }
-
-    if (!location) {
-      retryRequestPermissions();
-      return;
-    }
-
-    recenter();
-  };
+  const locate = useLocate();
 
   const onMapPress = (event: MapPressEvent) => {
     if (event.nativeEvent.action !== "marker-press") {
@@ -163,7 +152,7 @@ export default () => {
       <BackgroundDataLoader onNeedsCaptcha={handleNeedsCaptcha} />
 
       <MapView
-        ref={mapViewRef}
+        ref={mapRefCallback}
         style={styles.map}
         userInterfaceStyle={colorScheme === "dark" ? "dark" : "light"}
         cameraZoomRange={{
@@ -257,6 +246,7 @@ export default () => {
         )}
 
         <Route />
+        <DebugFitAreaPolygon />
       </MapView>
 
       <SafeAreaView style={styles.fillNoPointerEvents}>
@@ -284,6 +274,8 @@ export default () => {
       <View style={styles.fillNoPointerEvents}>
         <LoadingIndicator />
         <DistanceIndicator />
+        <DebugInfoHUD />
+        <DebugViewportRect />
       </View>
     </>
   );

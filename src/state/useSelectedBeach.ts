@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { useMapActions } from "./useMapActions";
 
 interface SelectedBeachState {
   selectedBeachId?: number;
@@ -9,9 +10,15 @@ interface SelectedBeachState {
 
 export const useSelectedBeach = create<SelectedBeachState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       selectedBeachId: undefined,
-      setSelectedBeachId: (beach) => set({ selectedBeachId: beach }),
+      setSelectedBeachId: (beach) => {
+        const prev = get().selectedBeachId;
+        set({ selectedBeachId: beach });
+        if (beach && beach !== prev) {
+          useMapActions.getState().recenter();
+        }
+      },
     }),
     {
       name: "selected-beach",
