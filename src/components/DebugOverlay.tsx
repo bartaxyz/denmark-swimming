@@ -26,8 +26,11 @@ export const DebugFitAreaPolygon: FC = () => {
     { latitude: minLat, longitude: minLng },
   ];
 
+  const key = corners.map((c) => `${c.latitude},${c.longitude}`).join(";");
+
   return (
     <Polygon
+      key={key}
       coordinates={corners}
       strokeColor="rgba(255, 0, 0, 0.8)"
       fillColor="rgba(255, 0, 0, 0.1)"

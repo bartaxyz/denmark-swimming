@@ -1,7 +1,7 @@
 import { Dimensions } from "react-native";
 import { initialWindowMetrics } from "react-native-safe-area-context";
 import { useBeachDataStore } from "../state/useBeachDataStore";
-import { useLocationStore } from "./useLocation";
+import { getCurrentLocation } from "./useLocation";
 import { useMapActions } from "../state/useMapActions";
 import { useMapRef } from "../state/useMapRef";
 import { useRouteData } from "../state/useRouteData";
@@ -12,8 +12,8 @@ import { ICON_BUTTON_SIZES } from "../components/IconButton";
 import { TOP_INDICATOR_MARGIN_TOP, TOP_INDICATOR_MIN_HEIGHT } from "../components/TopIndicator";
 import { useDebugRecenter } from "../state/useDebugRecenter";
 import { usePreferences } from "../state/usePreferences";
-import { boundingBoxOfDenmark, denmarkCenter } from "../constants";
-import { BEACH_BBOX_OFFSET, DENMARK_ZOOM } from "../constants/map";
+import { boundingBoxOfDenmark } from "../constants";
+import { BEACH_BBOX_OFFSET } from "../constants/map";
 
 type LatLng = { latitude: number; longitude: number };
 
@@ -49,12 +49,12 @@ export async function recenter() {
   const id = useSelectedBeach.getState().selectedBeachId;
   const beach = beaches.find((b) => b.id === id);
 
-  const locationState = useLocationStore.getState();
-  const location =
-    __DEV__ && locationState.debugLocation
-      ? locationState.debugLocation
-      : locationState.location;
-  const userCoords = location?.coords;
+  if (!beach) {
+    useDebugRecenter.getState().resetDebugInfo();
+    return;
+  }
+
+  const userCoords = getCurrentLocation()?.coords;
   const userInDenmark = userCoords
     ? isInDenmark(userCoords.latitude, userCoords.longitude)
     : false;
@@ -66,7 +66,6 @@ export async function recenter() {
   let points: LatLng[] = [];
 
   const routeMatchesBeach =
-    beach &&
     routeDestination &&
     Math.abs(routeDestination[0] - beach.longitude) < 0.001 &&
     Math.abs(routeDestination[1] - beach.latitude) < 0.001;
@@ -84,26 +83,13 @@ export async function recenter() {
         : []),
     ];
   } else {
-    if (beach) {
-      points.push({ latitude: beach.latitude, longitude: beach.longitude });
-    }
+    points.push({ latitude: beach.latitude, longitude: beach.longitude });
     if (userCoords && userInDenmark) {
       points.push({
         latitude: userCoords.latitude,
         longitude: userCoords.longitude,
       });
     }
-  }
-
-  // Nothing to show
-  if (points.length === 0) {
-    mapView.animateCamera({
-      center: denmarkCenter,
-      zoom: DENMARK_ZOOM,
-      heading: 0,
-      pitch: 0,
-    });
-    return;
   }
 
   // Single point: add bbox so fitToCoordinates has a region to work with

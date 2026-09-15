@@ -74,8 +74,6 @@ export const BeachDetailHeader: FC<BeachDetailHeaderProps> = ({
 const styles = StyleSheet.create({
   header: {
     height: HEADER_HEIGHT,
-    paddingLeft: 24,
-    paddingRight: 16,
     gap: 8,
     flexDirection: "row",
     justifyContent: "space-between",

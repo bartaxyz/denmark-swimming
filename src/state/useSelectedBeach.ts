@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { useDebugRecenter } from "./useDebugRecenter";
 import { useMapActions } from "./useMapActions";
 
 interface SelectedBeachState {
@@ -17,6 +18,8 @@ export const useSelectedBeach = create<SelectedBeachState>()(
         set({ selectedBeachId: beach });
         if (beach && beach !== prev) {
           useMapActions.getState().recenter();
+        } else if (!beach) {
+          useDebugRecenter.getState().resetDebugInfo();
         }
       },
     }),

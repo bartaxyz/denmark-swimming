@@ -27,9 +27,10 @@ interface DebugRecenterState {
   edgePadding: { top: number; right: number; bottom: number; left: number };
 
   setDebugInfo: (info: Partial<DebugRecenterState>) => void;
+  resetDebugInfo: () => void;
 }
 
-export const useDebugRecenter = create<DebugRecenterState>((set) => ({
+const initialDebugInfo = {
   fitPoints: [],
   center: null,
   offsetCenter: null,
@@ -42,5 +43,10 @@ export const useDebugRecenter = create<DebugRecenterState>((set) => ({
   hasRoute: false,
   pointCount: 0,
   edgePadding: { top: 0, right: 0, bottom: 0, left: 0 },
+};
+
+export const useDebugRecenter = create<DebugRecenterState>((set) => ({
+  ...initialDebugInfo,
   setDebugInfo: (info) => set(info),
+  resetDebugInfo: () => set(initialDebugInfo),
 }));

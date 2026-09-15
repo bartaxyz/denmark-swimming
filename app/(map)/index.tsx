@@ -1,4 +1,4 @@
-import { Link, router } from "expo-router";
+import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Position } from "geojson";
 import {
@@ -9,13 +9,7 @@ import {
   useState,
   type RefCallback,
 } from "react";
-import {
-  Platform,
-  StyleSheet,
-  View,
-  useColorScheme,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { StyleSheet, View, useColorScheme } from "react-native";
 import MapView, {
   MapPressEvent,
   Marker,
@@ -31,10 +25,8 @@ import {
   DebugViewportRect,
 } from "../../src/components/DebugOverlay";
 import { BeachCluster } from "../../src/components/BeachCluster";
-import { HEADER_HEIGHT } from "../../src/components/BeachDetailHeader";
 import { BeachMarker } from "../../src/components/BeachMarker";
 import { DistanceIndicator } from "../../src/components/DistanceIndicator";
-import { IconButton } from "../../src/components/IconButton";
 import { LoadingIndicator } from "../../src/components/LoadingIndicator";
 import { Route } from "../../src/components/Route";
 import {
@@ -43,19 +35,15 @@ import {
   denmarkSouthWest,
 } from "../../src/constants";
 import { DENMARK_ZOOM } from "../../src/constants/map";
-import { Mark } from "../../src/icons/Mark";
-import { Settings01 } from "../../src/icons/Settings01";
-import { PlatformIcon } from "../../src/components/PlatformIcon";
 import { usePreferences } from "../../src/state/usePreferences";
 import { useSelectedBeach } from "../../src/state/useSelectedBeach";
-import { usePalette } from "../../src/theme/usePalette";
 import { getCluster } from "../../src/utils/getCluster";
 import { useMapRef } from "../../src/state/useMapRef";
 import { getWaterQualityCounts } from "../../src/utils/getWaterQualityCounts";
 import { useDenmarkBeachesData } from "../../src/utils/useDenmarkBeachesData";
-import { useLocate } from "../../src/utils/useLocate";
 import { useLocation, useLocationStore } from "../../src/utils/useLocation";
 import { Beaches } from "../../types";
+import { useMapActions } from "../../src/state/useMapActions";
 
 const initialCamera = {
   center: denmarkCenter,
@@ -65,7 +53,6 @@ const initialCamera = {
 };
 
 export default () => {
-  const { foreground } = usePalette();
   const { location } = useLocation();
   const { beaches } = useDenmarkBeachesData();
   const debugMode = usePreferences((s) => s.debugMode);
@@ -96,37 +83,18 @@ export default () => {
     }
   }, [mapViewRef, mapsProvider]);
 
-  const buttonBottom =
-    HEADER_HEIGHT + Platform.select({ android: 16, default: 0 });
-
-  const settingsButtonStyles = useMemo(
-    () => ({
-      position: "absolute" as const,
-      bottom: buttonBottom,
-      left: 24,
-    }),
-    [buttonBottom],
-  );
-
-  const locateButtonStyles = useMemo(
-    () => ({
-      position: "absolute" as const,
-      bottom: buttonBottom,
-      right: 24,
-    }),
-    [buttonBottom],
-  );
-
   const handleNeedsCaptcha = useCallback(() => {
     router.push("/captcha");
   }, []);
-
-  const locate = useLocate();
 
   const onMapPress = (event: MapPressEvent) => {
     if (event.nativeEvent.action !== "marker-press") {
       setSelectedBeachId();
     }
+  };
+
+  const onMapLoaded = () => {
+    useMapActions.getState().recenter();
   };
 
   const mapZoomIn = (coordinates: Position) => async () => {
@@ -179,6 +147,7 @@ export default () => {
         onPress={onMapPress}
         initialCamera={initialCamera}
         onRegionChangeComplete={setRegion}
+        onMapLoaded={onMapLoaded}
       >
         {cluster &&
           markers
@@ -249,28 +218,6 @@ export default () => {
         <DebugFitAreaPolygon />
       </MapView>
 
-      <SafeAreaView style={styles.fillNoPointerEvents}>
-        <View style={styles.fillRelativeNoPointerEvents}>
-          <Link href="/settings" asChild>
-            <IconButton style={settingsButtonStyles} size="L">
-              <PlatformIcon
-                iosName="gearshape"
-                fallback={<Settings01 stroke={foreground} />}
-                color={foreground}
-              />
-            </IconButton>
-          </Link>
-
-          <IconButton style={locateButtonStyles} onPress={locate} size="L">
-            <PlatformIcon
-              iosName="location"
-              fallback={<Mark stroke={foreground} />}
-              color={foreground}
-            />
-          </IconButton>
-        </View>
-      </SafeAreaView>
-
       <View style={styles.fillNoPointerEvents}>
         <LoadingIndicator />
         <DistanceIndicator />
@@ -294,12 +241,5 @@ const styles = StyleSheet.create({
     height: "100%",
     flex: 1,
     pointerEvents: "box-none",
-  },
-  fillRelativeNoPointerEvents: {
-    position: "relative",
-    pointerEvents: "box-none",
-    width: "100%",
-    height: "100%",
-    paddingBottom: HEADER_HEIGHT,
   },
 });

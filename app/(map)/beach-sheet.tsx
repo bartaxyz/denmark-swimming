@@ -6,9 +6,15 @@ import {
   Text,
   View,
 } from "react-native";
+import { Link } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTrueSheetNavigation } from "@lodev09/react-native-true-sheet/navigation";
 import { Route } from "../../src/icons/Route";
+import { Mark } from "../../src/icons/Mark";
+import { Settings01 } from "../../src/icons/Settings01";
+import { IconButton } from "../../src/components/IconButton";
+import { PlatformIcon } from "../../src/components/PlatformIcon";
+import { useLocate } from "../../src/utils/useLocate";
 import { useSelectedBeach } from "../../src/state/useSelectedBeach";
 import { usePalette } from "../../src/theme/usePalette";
 import { useDenmarkBeachesData } from "../../src/utils/useDenmarkBeachesData";
@@ -26,6 +32,7 @@ export default function BeachSheetScreen() {
 
   const { beaches, isLoading } = useDenmarkBeachesData();
   const selectedBeachId = useSelectedBeach((state) => state.selectedBeachId);
+  const locate = useLocate();
 
   const selectedBeach = beaches.find((beach) => beach.id === selectedBeachId);
   const today = selectedBeach?.data?.[0];
@@ -36,23 +43,45 @@ export default function BeachSheetScreen() {
 
   return (
     <>
-      {selectedBeach ? (
-        <BeachDetailHeader
-          toggleBeachDetail={toggleBeachDetail}
-          selectedBeach={selectedBeach}
-          today={today}
-        />
-      ) : (
-        <View style={styles.emptyHeader}>
-          {isLoading ? (
-            <ActivityIndicator />
+      <View style={styles.pinnedBar}>
+        <Link href="/settings" asChild>
+          <IconButton size="L">
+            <PlatformIcon
+              iosName="gearshape"
+              fallback={<Settings01 stroke={foreground} />}
+              color={foreground}
+            />
+          </IconButton>
+        </Link>
+
+        <View style={styles.pinnedBarContent}>
+          {selectedBeach ? (
+            <BeachDetailHeader
+              toggleBeachDetail={toggleBeachDetail}
+              selectedBeach={selectedBeach}
+              today={today}
+            />
           ) : (
-            <Text style={[styles.emptyHeaderLabel, { color: foreground }]}>
-              Select a beach
-            </Text>
+            <View style={styles.emptyHeader}>
+              {isLoading ? (
+                <ActivityIndicator />
+              ) : (
+                <Text style={[styles.emptyHeaderLabel, { color: foreground }]}>
+                  Select a beach
+                </Text>
+              )}
+            </View>
           )}
         </View>
-      )}
+
+        <IconButton onPress={locate} size="L">
+          <PlatformIcon
+            iosName="location"
+            fallback={<Mark stroke={foreground} />}
+            color={foreground}
+          />
+        </IconButton>
+      </View>
 
       {selectedBeach && (
         <>
@@ -108,10 +137,19 @@ export default function BeachSheetScreen() {
 }
 
 const styles = StyleSheet.create({
+  pinnedBar: {
+    height: HEADER_HEIGHT,
+    paddingLeft: 16,
+    paddingRight: 16,
+    gap: 8,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  pinnedBarContent: {
+    flex: 1,
+  },
   emptyHeader: {
     height: HEADER_HEIGHT,
-    paddingLeft: 24,
-    paddingRight: 16,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",

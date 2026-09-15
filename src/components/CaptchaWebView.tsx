@@ -143,7 +143,15 @@ export const CaptchaWebView: FC<CaptchaWebViewProps> = ({
                 console.warn("Captcha webview TLS warning:", errorDesc);
                 return;
               }
-              setLoadError(errorDesc || "Failed to load page");
+              const isConnectionError =
+                errorDesc.toLowerCase().includes("connection_refused") ||
+                errorDesc.toLowerCase().includes("timed out") ||
+                errorDesc.toLowerCase().includes("not_connected") ||
+                errorDesc.toLowerCase().includes("name_not_resolved");
+              const userMessage = isConnectionError
+                ? "The data provider (badevand.dk) appears to be unavailable. Please try again later."
+                : errorDesc || "Failed to load page";
+              setLoadError(userMessage);
               onError(errorDesc || "WebView error");
             }}
             onHttpError={(e) => {
@@ -152,7 +160,6 @@ export const CaptchaWebView: FC<CaptchaWebViewProps> = ({
             onMessage={handleMessage}
             onNavigationStateChange={handleNavigationStateChange}
             injectedJavaScript={INJECTED_JAVASCRIPT}
-            injectedJavaScriptBeforeContentLoaded={INJECTED_JAVASCRIPT}
             javaScriptEnabled={true}
             domStorageEnabled={true}
             sharedCookiesEnabled={true}
