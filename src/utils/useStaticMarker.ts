@@ -5,7 +5,7 @@ import { usePreferences } from "../state/usePreferences";
 
 export const useStaticMarker = (beachIds: number | number[]) => {
   const mapMarker = useRef<InstanceType<typeof Marker>>(null);
-  const timeoutRefs = useRef<NodeJS.Timeout[]>([]);
+  const timeoutRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const selectedBeachId = useSelectedBeach((state) => state.selectedBeachId);
   const isSelected = Array.isArray(beachIds)

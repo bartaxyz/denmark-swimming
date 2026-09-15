@@ -17,7 +17,7 @@ export const BackgroundDataLoader: FC<BackgroundDataLoaderProps> = ({
 }) => {
   const webViewRef = useRef<WebView>(null);
   const [showWebView, setShowWebView] = useState(false);
-  const captchaTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const captchaTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const setBeaches = useBeachDataStore((state) => state.setBeaches);
   const isCacheValid = useBeachDataStore((state) => state.isCacheValid);

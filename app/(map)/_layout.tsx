@@ -21,7 +21,7 @@ export default function MapLayout() {
   return (
     <SheetNavigator
       screenListeners={{
-        focus: ({ target }) => {
+        focus: ({ target }: { target?: string }) => {
           if (!sheetShown.current && target?.startsWith("index")) {
             sheetShown.current = true;
             router.push("/(map)/beach-sheet");

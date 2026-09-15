@@ -1,8 +1,6 @@
-import { Stack } from "expo-router";
-import { ThemeProvider } from "@react-navigation/native";
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Platform, useColorScheme } from "react-native";
-import { DarkTheme, DefaultTheme } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { usePalette } from "../src/theme/usePalette";
 
