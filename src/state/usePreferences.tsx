@@ -25,6 +25,8 @@ interface PreferencesState {
   setPerformanceMode: (performanceMode: boolean) => void;
   transportationMode: TransportationMode;
   setTransportationMode: (transportationMode: TransportationMode) => void;
+  debugMode: boolean;
+  setDebugMode: (debugMode: boolean) => void;
 }
 
 export const usePreferences = create<PreferencesState>()(
@@ -41,6 +43,8 @@ export const usePreferences = create<PreferencesState>()(
       transportationMode: "bicycling",
       setTransportationMode: (transportationMode) =>
         set({ transportationMode: transportationMode }),
+      debugMode: false,
+      setDebugMode: (debugMode) => set({ debugMode }),
     }),
     {
       name: "preferences",

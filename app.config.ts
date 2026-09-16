@@ -39,13 +39,12 @@ const expo: ExpoConfig = {
   icon: "./assets/icon.png",
   userInterfaceStyle,
   assetBundlePatterns: ["**/*"],
-  splash,
   ios: {
     icon: "./assets/icon.icon",
     bundleIdentifier: "com.ondrejbarta.denmarkswimming",
     buildNumber: version,
     supportsTablet: true,
-    splash,
+    appleTeamId: "73N8SZQ662",
     userInterfaceStyle,
     infoPlist: {
       NSLocationWhenInUseUsageDescription:
@@ -62,13 +61,15 @@ const expo: ExpoConfig = {
       foregroundImage: "./assets/icon.png",
       backgroundColor: "#ffffff",
     },
-    splash,
     userInterfaceStyle,
   },
   web: { favicon: "./assets/favicon.png" },
   extra: { eas: { projectId: "a4e906d9-0345-4542-bf99-d44e10d445cf" } },
   plugins: [
+    "./plugins/withIosSceneLifecycle.js",
     "expo-router",
+    "expo-status-bar",
+    ["expo-splash-screen", splash],
     [
       "expo-location",
       {

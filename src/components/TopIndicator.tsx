@@ -2,6 +2,7 @@ import { rgba } from "polished";
 import { FC, PropsWithChildren } from "react";
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -9,6 +10,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { usePalette } from "../theme/usePalette";
+import { GlassView } from "expo-glass-effect";
+
+export const TOP_INDICATOR_MARGIN_TOP = 16;
+export const TOP_INDICATOR_MIN_HEIGHT = 32;
 
 export interface TopIndicatorProps extends PropsWithChildren {
   title?: string;
@@ -26,6 +31,8 @@ export const TopIndicator: FC<TopIndicatorProps> = ({
 }) => {
   const { foreground, background, isDark } = usePalette();
 
+  const borderRadius = subtitle ? 40 : 24;
+
   const styles = StyleSheet.create({
     container: {
       flexDirection: "row",
@@ -33,33 +40,47 @@ export const TopIndicator: FC<TopIndicatorProps> = ({
       justifyContent: "center",
     },
     innerContainer: {
-      backgroundColor: background,
-      justifyContent: "center",
-      alignItems: "center",
-      borderRadius: subtitle ? 40 : 24,
-      marginTop: 16,
-      borderColor: rgba(foreground, isDark ? 0.15 : 0.1),
-      borderWidth: 1,
+      ...Platform.select({
+        android: { backgroundColor: background },
+        default: {},
+      }),
+      justifyContent: "center" as const,
+      alignItems: "center" as const,
+      borderRadius,
+      marginTop: TOP_INDICATOR_MARGIN_TOP,
+      overflow: "hidden",
+      ...Platform.select({
+        android: {
+          elevation: 8,
+        },
+        default: {
+          borderColor: rgba(foreground, isDark ? 0.15 : 0.1),
+          borderWidth: 1,
+        },
+      }),
     },
     loadingContainer: {
       height: 32,
       width: 32,
     },
     headerInfo: {
-      minHeight: 32,
+      minHeight: TOP_INDICATOR_MIN_HEIGHT,
       padding: 4,
       paddingLeft: 16,
       paddingRight: 16,
+      justifyContent: "center",
+      alignItems: "center",
     },
     title: {
-      display: "flex",
       color: foreground,
       fontSize: 14,
       fontWeight: "500",
+      textAlign: "center",
     },
     subtitle: {
       color: rgba(foreground, 0.5),
       fontSize: 12,
+      textAlign: "center",
     },
   });
 
@@ -71,21 +92,21 @@ export const TopIndicator: FC<TopIndicatorProps> = ({
             <ActivityIndicator />
           </View>
         ) : (
-          <Pressable
-            style={({ pressed }) => [
-              styles.innerContainer,
-              styles.headerInfo,
-              {
-                opacity: pressed ? 0.5 : 1,
-              },
-            ]}
-            onPress={onPress}
-          >
-            {title && <Text style={styles.title}>{title}</Text>}
-            {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
-
-            {children}
-          </Pressable>
+          <View style={styles.innerContainer}>
+            <Pressable
+              android_ripple={{
+                color: rgba(foreground, 0.2),
+                foreground: true,
+              }}
+              onPress={onPress}
+            >
+              <GlassView style={styles.headerInfo}>
+                {title && <Text style={styles.title}>{title}</Text>}
+                {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+                {children}
+              </GlassView>
+            </Pressable>
+          </View>
         )}
       </View>
     </SafeAreaView>

@@ -1,73 +1,60 @@
+import { GlassView } from "expo-glass-effect";
 import { rgba } from "polished";
-import { FC, forwardRef } from "react";
-import {
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  View,
-  ViewStyle,
-} from "react-native";
+import { forwardRef } from "react";
+import { Platform, Pressable, StyleSheet, View } from "react-native";
 import { usePalette } from "../theme/usePalette";
+
+export const ICON_BUTTON_SIZES = { M: 40, L: 48 } as const;
 
 export interface IconButtonProps {
   children: React.ReactNode;
   onPress?: () => void;
-  variant?: "solid" | "outline-only" | "transparent";
   size?: "M" | "L";
   style?: any;
 }
 
 export const IconButton = forwardRef<View, IconButtonProps>(
-  ({ children, onPress, variant = "outline-only", size = "M", style }, ref) => {
-    const { foreground, background, isDark } = usePalette();
+  ({ children, onPress, size = "M", style }, ref) => {
+    const { foreground, background } = usePalette();
+
+    const dimension = ICON_BUTTON_SIZES[size];
 
     const styles = StyleSheet.create({
-      button: {
-        width: size === "M" ? 40 : 48,
-        height: size === "M" ? 40 : 48,
-        backgroundColor: rgba(foreground, isDark ? 0.1 : 0),
+      baseStyle: {
+        width: dimension,
+        height: dimension,
         borderRadius: 64,
-        borderColor: rgba(foreground, isDark ? 0.15 : 0.1),
-        borderWidth: 1,
+        ...Platform.select({
+          android: {
+            backgroundColor: background,
+            elevation: 2,
+            overflow: "hidden",
+          },
+          default: {},
+        }),
+      },
+      glassStyle: {
+        flex: 1,
         alignItems: "center",
         justifyContent: "center",
-      },
-      buttonSolid: {
-        backgroundColor: background,
-        shadowColor: "black",
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-      },
-      buttonTransparent: {
-        backgroundColor: "transparent",
-        borderWidth: 0,
+        borderRadius: 64,
       },
     });
-
-    const buttonStyles: StyleProp<ViewStyle> = [styles.button];
-
-    if (variant === "solid") {
-      buttonStyles.push(styles.buttonSolid);
-    } else if (variant === "transparent") {
-      buttonStyles.push(styles.buttonTransparent);
-    }
 
     return (
       <Pressable
         ref={ref}
         onPress={onPress || ((event) => event.preventDefault())}
-        style={({ pressed }) => [
-          { opacity: pressed ? 0.5 : 1 },
-          buttonStyles,
-          style,
-        ]}
+        android_ripple={{ color: rgba(foreground, 0.2), foreground: true }}
+        style={[styles.baseStyle, style]}
       >
-        {children}
+        <GlassView
+          {...(Platform.OS === "ios" ? { isInteractive: true } : {})}
+          style={styles.glassStyle}
+        >
+          {children}
+        </GlassView>
       </Pressable>
     );
-  }
+  },
 );

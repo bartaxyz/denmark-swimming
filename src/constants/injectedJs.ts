@@ -15,6 +15,7 @@ export const INJECTED_JAVASCRIPT = `
     }
 
     function sendData(text) {
+      if (!window.ReactNativeWebView?.postMessage) return;
       window.ReactNativeWebView.postMessage(JSON.stringify({
         type: 'DATA_RECEIVED',
         data: text

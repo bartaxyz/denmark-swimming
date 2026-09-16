@@ -1,5 +1,5 @@
 import { rgba } from "polished";
-import { FC, PropsWithChildren } from "react";
+import { FC } from "react";
 import {
   Platform,
   Pressable,
@@ -19,6 +19,7 @@ import {
 } from "../../src/state/usePreferences";
 import { usePalette } from "../../src/theme/usePalette";
 import { useDenmarkBeachesData } from "../../src/utils/useDenmarkBeachesData";
+import { useLocationStore } from "../../src/utils/useLocation";
 
 export default () => {
   const mapsProvider = usePreferences((state) => state.mapsProvider);
@@ -26,9 +27,7 @@ export default () => {
 
   return (
     <>
-      <Divider />
-
-      <ScrollView>
+      <ScrollView contentInsetAdjustmentBehavior="automatic">
         <>
           <TransportationModeRow />
           <Divider />
@@ -62,21 +61,28 @@ export default () => {
           <RefreshDataRow />
           <Divider />
         </>
+
+        {__DEV__ && (
+          <>
+            <DebugModeRow />
+            <Divider />
+          </>
+        )}
       </ScrollView>
     </>
   );
 };
 
-const TransportationModeRow: FC<PropsWithChildren> = ({ children }) => {
+const TransportationModeRow: FC = () => {
   const transportationMode = usePreferences(
-    (state) => state.transportationMode
+    (state) => state.transportationMode,
   );
   const setTransportationMode = usePreferences(
-    (state) => state.setTransportationMode
+    (state) => state.setTransportationMode,
   );
 
   const transportationModes = Object.keys(
-    TRANSPORTATION_MODES
+    TRANSPORTATION_MODES,
   ) as TransportationMode[];
 
   const styles = StyleSheet.create({
@@ -109,13 +115,13 @@ const TransportationModeRow: FC<PropsWithChildren> = ({ children }) => {
   );
 };
 
-const MapsProviderRow: FC<PropsWithChildren> = ({ children }) => {
+const MapsProviderRow: FC = () => {
   const mapsProvider = usePreferences((state) => state.mapsProvider);
   const setMapsProvider = usePreferences((state) => state.setMapsProvider);
 
   const toggleMapsProvider = () => {
     setMapsProvider(
-      mapsProvider === "google" ? PROVIDER_DEFAULT : PROVIDER_GOOGLE
+      mapsProvider === "google" ? PROVIDER_DEFAULT : PROVIDER_GOOGLE,
     );
   };
 
@@ -133,12 +139,12 @@ const MapsProviderRow: FC<PropsWithChildren> = ({ children }) => {
   );
 };
 
-const DisableCustomMapStylesRow: FC<PropsWithChildren> = ({ children }) => {
+const DisableCustomMapStylesRow: FC = () => {
   const disableCustomMapStyles = usePreferences(
-    (state) => state.disableCustomMapStyles
+    (state) => state.disableCustomMapStyles,
   );
   const setDisableCustomMapStyles = usePreferences(
-    (state) => state.setDisableCustomMapStyles
+    (state) => state.setDisableCustomMapStyles,
   );
 
   const toggleDisableCustomMapStyles = () => {
@@ -159,10 +165,10 @@ const DisableCustomMapStylesRow: FC<PropsWithChildren> = ({ children }) => {
   );
 };
 
-const PerformanceModeRow: FC<PropsWithChildren> = ({ children }) => {
+const PerformanceModeRow: FC = () => {
   const performanceMode = usePreferences((state) => state.performanceMode);
   const setPerformanceMode = usePreferences(
-    (state) => state.setPerformanceMode
+    (state) => state.setPerformanceMode,
   );
 
   const togglePerformanceMode = () => {
@@ -179,6 +185,44 @@ const PerformanceModeRow: FC<PropsWithChildren> = ({ children }) => {
         value={performanceMode}
         onValueChange={togglePerformanceMode}
       />
+    </Row>
+  );
+};
+
+const DebugModeRow: FC = () => {
+  const debugMode = usePreferences((state) => state.debugMode);
+  const setDebugMode = usePreferences((state) => state.setDebugMode);
+  const setDebugLocation = useLocationStore((s) => s.setDebugLocation);
+
+  const toggle = () => {
+    const next = !debugMode;
+    setDebugMode(next);
+    if (next) {
+      // Copenhagen, Denmark
+      setDebugLocation({
+        coords: {
+          latitude: 55.6761,
+          longitude: 12.5683,
+          altitude: 0,
+          accuracy: 10,
+          altitudeAccuracy: 10,
+          heading: 0,
+          speed: 0,
+        },
+        timestamp: Date.now(),
+      });
+    } else {
+      setDebugLocation(null);
+    }
+  };
+
+  return (
+    <Row
+      title="Debug Mode"
+      subtitle="Fake location (Copenhagen), recenter fit area overlay, and zoom debug info."
+      onPress={toggle}
+    >
+      <StyledSwitch value={debugMode} onValueChange={toggle} />
     </Row>
   );
 };
@@ -202,7 +246,7 @@ const RefreshDataRow: FC = () => {
   );
 };
 
-const StyledSwitch: FC<SwitchProps> = ({ children, ...props }) => {
+const StyledSwitch: FC<SwitchProps> = (props) => {
   const { foreground, markers } = usePalette();
 
   return (

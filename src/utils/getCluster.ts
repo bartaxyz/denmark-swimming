@@ -2,12 +2,11 @@ import { Region } from "react-native-maps";
 import Supercluster from "supercluster";
 import { Beaches } from "../../types";
 import { getZoomLevel } from "./getZoomLevel";
-import { Platform } from "react-native";
 
 export const getCluster = (
   beaches?: Beaches,
   region?: Region,
-  performanceMode?: boolean
+  performanceMode?: boolean,
 ) => {
   if (!beaches || beaches.length === 0 || !region) {
     return {
@@ -17,7 +16,7 @@ export const getCluster = (
   }
 
   const cluster = new Supercluster({
-    radius: performanceMode ? 0 : 32,
+    radius: performanceMode ? 0 : 24,
     maxZoom: 16,
   });
 
@@ -34,7 +33,7 @@ export const getCluster = (
           type: "Point",
           coordinates: [beach.longitude, beach.latitude],
         },
-      }))
+      })),
     );
 
     markers = cluster.getClusters(
@@ -44,7 +43,7 @@ export const getCluster = (
         region.longitude + region.longitudeDelta * (0.5 + padding),
         region.latitude + region.latitudeDelta * (0.5 + padding),
       ],
-      getZoomLevel(region.longitudeDelta)
+      getZoomLevel(region.longitudeDelta),
     );
   } catch (e) {
     console.debug("failed to create cluster", e);
