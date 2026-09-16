@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { Link, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Position } from "geojson";
 import {
@@ -10,6 +10,7 @@ import {
   type RefCallback,
 } from "react";
 import { StyleSheet, View, useColorScheme } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import MapView, {
   Details,
   MapPressEvent,
@@ -28,7 +29,9 @@ import {
 import { BeachCluster } from "../../src/components/BeachCluster";
 import { BeachMarker } from "../../src/components/BeachMarker";
 import { DistanceIndicator } from "../../src/components/DistanceIndicator";
+import { IconButton } from "../../src/components/IconButton";
 import { LoadingIndicator } from "../../src/components/LoadingIndicator";
+import { PlatformIcon } from "../../src/components/PlatformIcon";
 import { Route } from "../../src/components/Route";
 import {
   denmarkCenter,
@@ -45,6 +48,10 @@ import { useDenmarkBeachesData } from "../../src/utils/useDenmarkBeachesData";
 import { useLocation } from "../../src/utils/useLocation";
 import { Beaches } from "../../types";
 import { useMapActions } from "../../src/state/useMapActions";
+import { Mark } from "../../src/icons/Mark";
+import { Settings01 } from "../../src/icons/Settings01";
+import { usePalette } from "../../src/theme/usePalette";
+import { useLocate } from "../../src/utils/useLocate";
 
 const initialCamera = {
   center: denmarkCenter,
@@ -60,6 +67,7 @@ const initialRegion = {
 };
 
 export default () => {
+  const { foreground } = usePalette();
   const { location } = useLocation();
   const { beaches } = useDenmarkBeachesData();
   const debugMode = usePreferences((s) => s.debugMode);
@@ -81,6 +89,7 @@ export default () => {
   const setSelectedBeachId = useSelectedBeach(
     (state) => state.setSelectedBeachId,
   );
+  const locate = useLocate();
 
   const [region, setRegion] = useState<Region | undefined>(undefined);
 
@@ -234,6 +243,28 @@ export default () => {
         <DebugFitAreaPolygon />
       </MapView>
 
+      <SafeAreaView style={styles.fillNoPointerEvents}>
+        <View style={styles.topControls}>
+          <Link href="/settings" asChild>
+            <IconButton size="L">
+              <PlatformIcon
+                iosName="gearshape"
+                fallback={<Settings01 stroke={foreground} />}
+                color={foreground}
+              />
+            </IconButton>
+          </Link>
+
+          <IconButton onPress={locate} size="L">
+            <PlatformIcon
+              iosName="location"
+              fallback={<Mark stroke={foreground} />}
+              color={foreground}
+            />
+          </IconButton>
+        </View>
+      </SafeAreaView>
+
       <View style={styles.fillNoPointerEvents}>
         <LoadingIndicator />
         <DistanceIndicator />
@@ -248,6 +279,13 @@ const styles = StyleSheet.create({
   map: {
     width: "100%",
     height: "100%",
+  },
+  topControls: {
+    paddingTop: 8,
+    paddingHorizontal: 24,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    pointerEvents: "box-none",
   },
   fillNoPointerEvents: {
     position: "absolute",

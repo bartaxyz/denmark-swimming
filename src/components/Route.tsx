@@ -1,4 +1,4 @@
-import { FC, memo, useState } from "react";
+import { FC, memo, useCallback, useState } from "react";
 import { Polyline as MapPolyline } from "react-native-maps";
 import { useFocusEffect } from "expo-router";
 import { usePalette } from "../theme/usePalette";
@@ -10,9 +10,11 @@ export const Route: FC = memo(
     const { polylineCoordinates } = useSelectedRoute();
     // Force Polyline to remount after navigation (Android drops native overlays)
     const [renderKey, setRenderKey] = useState(0);
-    useFocusEffect(() => {
-      setRenderKey((k) => k + 1);
-    });
+    useFocusEffect(
+      useCallback(() => {
+        setRenderKey((k) => k + 1);
+      }, []),
+    );
 
     // Don't return null - return an empty polyline instead to avoid
     // react-native-maps Google provider crash on iOS when inserting nil subviews

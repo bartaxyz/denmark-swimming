@@ -36,6 +36,7 @@ export const BeachDetail: FC<BeachDetailProps> = ({ onChange }) => {
   const today = selectedBeach?.data?.[0];
 
   const sheetRef = useRef<TrueSheet>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const toggleBeachDetail = () => {
     sheetRef.current?.resize(1).catch(() => {});
@@ -68,12 +69,14 @@ export const BeachDetail: FC<BeachDetailProps> = ({ onChange }) => {
       grabber={true}
       dimmed={false}
       dismissible={false}
-      scrollable
+      scrollableRef={scrollViewRef}
+      style={{ flex: 1 }}
       onDetentChange={(e) => onChange?.(e.nativeEvent.index)}
       header={headerContent}
       headerStyle={styles.headerContainer}
     >
       <ScrollView
+        ref={scrollViewRef}
         contentContainerStyle={{
           paddingBottom: insets.bottom,
         }}
