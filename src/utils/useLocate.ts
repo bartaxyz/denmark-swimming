@@ -1,5 +1,4 @@
 import { Alert, Linking } from "react-native";
-import { useMapActions } from "../state/useMapActions";
 import { useLocation } from "./useLocation";
 
 export function useLocate() {
@@ -7,17 +6,7 @@ export function useLocate() {
 
   const locate = () => {
     if (!location) {
-      retryRequestPermissions()
-        .then((newLocation) => {
-          if (newLocation) {
-            useMapActions.getState().recenter();
-          }
-        })
-        .catch(() => {
-          console.error(
-            "Error requesting location permissions or getting location",
-          );
-        });
+      retryRequestPermissions();
 
       if (status === "denied") {
         Alert.alert(
@@ -31,7 +20,6 @@ export function useLocate() {
       }
     }
 
-    useMapActions.getState().recenter();
   };
 
   return locate;

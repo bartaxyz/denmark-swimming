@@ -1,4 +1,5 @@
 import Polyline from "@mapbox/polyline";
+import { useEffect } from "react";
 import useSWR, { Fetcher } from "swr";
 import env from "../env";
 import { TransportationMode } from "../state/usePreferences";
@@ -64,6 +65,12 @@ export const useFetchRoute = (
     : null;
 
   const { setRouteData, clearRouteData } = useRouteData();
+
+  useEffect(() => {
+    if (!shouldFetch) {
+      clearRouteData();
+    }
+  }, [shouldFetch, clearRouteData]);
 
   const { data: routeData, ...args } = useSWR<Response>(
     key,

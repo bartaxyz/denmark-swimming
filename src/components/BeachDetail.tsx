@@ -1,5 +1,5 @@
 import { TrueSheet } from "@lodev09/react-native-true-sheet";
-import { FC, useEffect, useRef } from "react";
+import { FC, useRef } from "react";
 import {
   ActivityIndicator,
   Linking,
@@ -12,11 +12,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Route } from "../icons/Route";
 import { useSelectedBeach } from "../state/useSelectedBeach";
 import { usePalette } from "../theme/usePalette";
+import { getSheetDetents } from "../utils/getSheetDetents";
 import { useDenmarkBeachesData } from "../utils/useDenmarkBeachesData";
 import { BeachDetailHeader, HEADER_HEIGHT } from "./BeachDetailHeader";
 import { BeachDetailInfo } from "./BeachDetailInfo";
 import { Button } from "./Button";
-import { getSheetDetents } from "../utils/getSheetDetents";
 
 export const SHEET_TOP_PADDING = 256;
 

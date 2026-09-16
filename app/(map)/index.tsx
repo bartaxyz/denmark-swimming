@@ -11,6 +11,7 @@ import {
 } from "react";
 import { StyleSheet, View, useColorScheme } from "react-native";
 import MapView, {
+  Details,
   MapPressEvent,
   Marker,
   PROVIDER_GOOGLE,
@@ -41,7 +42,7 @@ import { getCluster } from "../../src/utils/getCluster";
 import { useMapRef } from "../../src/state/useMapRef";
 import { getWaterQualityCounts } from "../../src/utils/getWaterQualityCounts";
 import { useDenmarkBeachesData } from "../../src/utils/useDenmarkBeachesData";
-import { useLocation, useLocationStore } from "../../src/utils/useLocation";
+import { useLocation } from "../../src/utils/useLocation";
 import { Beaches } from "../../types";
 import { useMapActions } from "../../src/state/useMapActions";
 
@@ -56,8 +57,7 @@ export default () => {
   const { location } = useLocation();
   const { beaches } = useDenmarkBeachesData();
   const debugMode = usePreferences((s) => s.debugMode);
-  const debugLocation = useLocationStore((s) => s.debugLocation);
-  const isDebugLocation = __DEV__ && debugMode && !!debugLocation;
+  const isDebugLocation = __DEV__ && debugMode;
   const mapViewRef = useRef<MapView>(null);
   const setMapView = useMapRef((s) => s.setMapView);
   const mapRefCallback: RefCallback<MapView> = useCallback(
@@ -77,6 +77,13 @@ export default () => {
 
   const [region, setRegion] = useState<Region | undefined>(undefined);
 
+  const onRegionChangeComplete = (region: Region, details: Details) => {
+    setRegion(region);
+    if (details.isGesture) {
+      useMapActions.getState().markUserMoved();
+    }
+  };
+
   useEffect(() => {
     if (mapsProvider === PROVIDER_GOOGLE) {
       mapViewRef.current?.setMapBoundaries(denmarkNorthEast, denmarkSouthWest);
@@ -91,10 +98,6 @@ export default () => {
     if (event.nativeEvent.action !== "marker-press") {
       setSelectedBeachId();
     }
-  };
-
-  const onMapLoaded = () => {
-    useMapActions.getState().recenter();
   };
 
   const mapZoomIn = (coordinates: Position) => async () => {
@@ -146,8 +149,7 @@ export default () => {
         provider={mapsProvider}
         onPress={onMapPress}
         initialCamera={initialCamera}
-        onRegionChangeComplete={setRegion}
-        onMapLoaded={onMapLoaded}
+        onRegionChangeComplete={onRegionChangeComplete}
       >
         {cluster &&
           markers

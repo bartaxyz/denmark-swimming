@@ -153,6 +153,8 @@ export async function recenter() {
     });
   }
 
+  useMapActions.getState().markRecentered();
+
   // Let the map engine calculate the correct zoom natively
   mapView.fitToCoordinates(fitPoints, {
     edgePadding,

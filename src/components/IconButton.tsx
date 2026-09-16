@@ -46,11 +46,7 @@ export const IconButton = forwardRef<View, IconButtonProps>(
         ref={ref}
         onPress={onPress || ((event) => event.preventDefault())}
         android_ripple={{ color: rgba(foreground, 0.2), foreground: true }}
-        style={({ pressed }) => [
-          styles.baseStyle,
-          Platform.OS === "ios" && { opacity: pressed ? 0.5 : 1 },
-          style,
-        ]}
+        style={[styles.baseStyle, style]}
       >
         <GlassView
           {...(Platform.OS === "ios" ? { isInteractive: true } : {})}
