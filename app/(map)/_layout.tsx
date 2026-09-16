@@ -1,3 +1,4 @@
+import { TrueSheet } from "@lodev09/react-native-true-sheet";
 import { createTrueSheetNavigator } from "@lodev09/react-native-true-sheet/navigation";
 import { Link, router, withLayoutContext } from "expo-router";
 import { useRef } from "react";
@@ -18,9 +19,19 @@ import { getSheetDetents } from "../../src/utils/getSheetDetents";
 import { useLocate } from "../../src/utils/useLocate";
 import "../../src/utils/recenter"; // registers recenter into useMapActions
 
+declare const module: {
+  hot?: { dispose: (callback: () => void) => void };
+};
+
 const { Navigator } = createTrueSheetNavigator();
 
 const SheetNavigator = withLayoutContext(Navigator);
+
+if (__DEV__) {
+  module.hot?.dispose(() => {
+    TrueSheet.dismissAll(false).catch(() => {});
+  });
+}
 
 export default function MapLayout() {
   const detents = getSheetDetents();
