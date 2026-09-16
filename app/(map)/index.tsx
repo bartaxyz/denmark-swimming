@@ -53,6 +53,12 @@ const initialCamera = {
   pitch: 0,
 };
 
+const initialRegion = {
+  ...denmarkCenter,
+  latitudeDelta: 3.8,
+  longitudeDelta: 5.6,
+};
+
 export default () => {
   const { location } = useLocation();
   const { beaches } = useDenmarkBeachesData();
@@ -71,6 +77,7 @@ export default () => {
 
   const { performanceMode, mapsProvider, disableCustomMapStyles } =
     usePreferences();
+  const isGoogleMaps = mapsProvider === PROVIDER_GOOGLE;
   const setSelectedBeachId = useSelectedBeach(
     (state) => state.setSelectedBeachId,
   );
@@ -85,10 +92,10 @@ export default () => {
   };
 
   useEffect(() => {
-    if (mapsProvider === PROVIDER_GOOGLE) {
+    if (isGoogleMaps) {
       mapViewRef.current?.setMapBoundaries(denmarkNorthEast, denmarkSouthWest);
     }
-  }, [mapViewRef, mapsProvider]);
+  }, [mapViewRef, isGoogleMaps]);
 
   const handleNeedsCaptcha = useCallback(() => {
     router.push("/captcha");
@@ -126,11 +133,15 @@ export default () => {
         ref={mapRefCallback}
         style={styles.map}
         userInterfaceStyle={colorScheme === "dark" ? "dark" : "light"}
-        cameraZoomRange={{
-          minCenterCoordinateDistance: 6.5,
-          maxCenterCoordinateDistance: 20,
-          animated: true,
-        }}
+        cameraZoomRange={
+          isGoogleMaps
+            ? {
+                minCenterCoordinateDistance: 6.5,
+                maxCenterCoordinateDistance: 20,
+                animated: true,
+              }
+            : undefined
+        }
         zoomControlEnabled={true}
         showsUserLocation={!!location && !isDebugLocation}
         showsMyLocationButton={false}
@@ -142,13 +153,16 @@ export default () => {
         customMapStyle={
           disableCustomMapStyles
             ? undefined
-            : colorScheme === "dark"
-              ? mapDarkStyle
-              : mapLightStyle
+            : isGoogleMaps
+              ? colorScheme === "dark"
+                ? mapDarkStyle
+                : mapLightStyle
+              : undefined
         }
         provider={mapsProvider}
         onPress={onMapPress}
-        initialCamera={initialCamera}
+        initialCamera={isGoogleMaps ? initialCamera : undefined}
+        initialRegion={isGoogleMaps ? undefined : initialRegion}
         onRegionChangeComplete={onRegionChangeComplete}
       >
         {cluster &&
