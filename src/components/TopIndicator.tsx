@@ -40,7 +40,10 @@ export const TopIndicator: FC<TopIndicatorProps> = ({
       justifyContent: "center",
     },
     innerContainer: {
-      backgroundColor: background,
+      ...Platform.select({
+        android: { backgroundColor: background },
+        default: {},
+      }),
       justifyContent: "center" as const,
       alignItems: "center" as const,
       borderRadius,

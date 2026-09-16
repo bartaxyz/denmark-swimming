@@ -243,33 +243,33 @@ export default () => {
         <DebugFitAreaPolygon />
       </MapView>
 
-      <SafeAreaView style={styles.fillNoPointerEvents}>
-        <View style={styles.topControls}>
-          <Link href="/settings" asChild>
-            <IconButton size="L">
-              <PlatformIcon
-                iosName="gearshape"
-                fallback={<Settings01 stroke={foreground} />}
-                color={foreground}
-              />
-            </IconButton>
-          </Link>
-
-          <IconButton onPress={locate} size="L">
-            <PlatformIcon
-              iosName="location"
-              fallback={<Mark stroke={foreground} />}
-              color={foreground}
-            />
-          </IconButton>
-        </View>
-      </SafeAreaView>
-
       <View style={styles.fillNoPointerEvents}>
         <LoadingIndicator />
         <DistanceIndicator />
         <DebugInfoHUD />
         <DebugViewportRect />
+
+        <SafeAreaView style={styles.fillNoPointerEvents}>
+          <View style={styles.topControls}>
+            <Link href="/settings" asChild>
+              <IconButton size="L">
+                <PlatformIcon
+                  iosName="gearshape"
+                  fallback={<Settings01 stroke={foreground} />}
+                  color={foreground}
+                />
+              </IconButton>
+            </Link>
+
+            <IconButton onPress={locate} size="L">
+              <PlatformIcon
+                iosName="location"
+                fallback={<Mark stroke={foreground} />}
+                color={foreground}
+              />
+            </IconButton>
+          </View>
+        </SafeAreaView>
       </View>
     </>
   );
