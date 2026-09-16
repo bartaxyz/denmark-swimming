@@ -2,7 +2,10 @@ import { createTrueSheetNavigator } from "@lodev09/react-native-true-sheet/navig
 import { Link, router, withLayoutContext } from "expo-router";
 import { useRef } from "react";
 import { Dimensions, Platform, StyleSheet, View } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
 import { HEADER_HEIGHT } from "../../src/components/BeachDetailHeader";
 import { IconButton } from "../../src/components/IconButton";
 import { PlatformIcon } from "../../src/components/PlatformIcon";
@@ -22,11 +25,9 @@ const SheetNavigator = withLayoutContext(Navigator);
 export default function MapLayout() {
   const detents = getSheetDetents();
   const setIndex = useSheetIndex((s) => s.setIndex);
-  const setPosition = useSheetIndex((s) => s.setPosition);
   const sheetIndex = useSheetIndex((s) => s.index);
   const sheetShown = useRef(false);
-  const { background, foreground } = usePalette();
-  const locate = useLocate();
+  const { background } = usePalette();
   const screenHeight = Dimensions.get("window").height;
   const controlsBottom = useSharedValue(HEADER_HEIGHT + 12);
   const controlsStyle = useAnimatedStyle(() => ({
@@ -37,84 +38,97 @@ export default function MapLayout() {
   return (
     <>
       <SheetNavigator
-      screenListeners={{
-        focus: ({ target }: { target?: string }) => {
-          if (!sheetShown.current && target?.startsWith("index")) {
-            sheetShown.current = true;
-            router.push("/(map)/beach-sheet");
-          }
-        },
-      }}
-    >
-      <SheetNavigator.Screen name="index" />
-      <SheetNavigator.Screen
-        name="beach-sheet"
-        options={{
-          detents,
-          grabber: Platform.select({ android: false, default: undefined }),
-          dimmed: false,
-          dismissible: false,
-          scrollable: true,
-          backgroundColor: Platform.select({
-            android: background,
-            default: undefined,
-          }),
-          reanimated: true,
-          positionChangeHandler: ({ position }: { position: number }) => {
-            "worklet";
-            controlsBottom.value = screenHeight - position + 12;
-          },
-        }}
-        listeners={{
-          sheetDetentChange: (e: any) => {
-            const previousIndex = useSheetIndex.getState().index;
-            const index = e.data?.index ?? 0;
-            setIndex(index);
-            if (typeof e.data?.position === "number") {
-              setPosition(e.data.position);
-            }
-
-            const sheetExpanded = index > previousIndex;
-            const sheetShrunk = index < previousIndex;
-            const sheetFullyExpanded = detents[index] >= 1;
-            const canRecenterAfterExpand =
-              sheetExpanded && !useMapActions.getState().userMovedSinceRecenter;
-
-            if (
-              !sheetFullyExpanded &&
-              (sheetShrunk || canRecenterAfterExpand)
-            ) {
-              useMapActions.getState().recenter();
+        screenListeners={{
+          focus: ({ target }: { target?: string }) => {
+            if (!sheetShown.current && target?.startsWith("index")) {
+              sheetShown.current = true;
+              router.push("/(map)/beach-sheet");
             }
           },
         }}
-      />
+      >
+        <SheetNavigator.Screen name="index" />
+        <SheetNavigator.Screen
+          name="beach-sheet"
+          options={{
+            detents,
+            grabber: Platform.select({ android: false, default: undefined }),
+            dimmed: false,
+            dismissible: false,
+            scrollable: true,
+            backgroundColor: Platform.select({
+              android: background,
+              default: undefined,
+            }),
+            reanimated: true,
+            positionChangeHandler: ({ position }: { position: number }) => {
+              "worklet";
+              controlsBottom.value = screenHeight - position + 12;
+            },
+          }}
+          listeners={{
+            sheetDetentChange: (e: any) => {
+              const previousIndex = useSheetIndex.getState().index;
+              const index = e.data?.index ?? 0;
+              setIndex(index);
+
+              const sheetExpanded = index > previousIndex;
+              const sheetShrunk = index < previousIndex;
+              const sheetFullyExpanded = detents[index] >= 1;
+              const canRecenterAfterExpand =
+                sheetExpanded &&
+                !useMapActions.getState().userMovedSinceRecenter;
+
+              if (
+                !sheetFullyExpanded &&
+                (sheetShrunk || canRecenterAfterExpand)
+              ) {
+                useMapActions.getState().recenter();
+              }
+            },
+          }}
+        />
       </SheetNavigator>
 
-      {showControls && (
-        <View style={styles.controlsOverlay} pointerEvents="box-none">
-          <Animated.View style={[styles.controlsBar, controlsStyle]}>
-            <Link href="/settings" asChild>
-              <IconButton size="L">
-                <PlatformIcon
-                  iosName="gearshape"
-                  fallback={<Settings01 stroke={foreground} />}
-                  color={foreground}
-                />
-              </IconButton>
-            </Link>
-
-            <IconButton onPress={locate} size="L">
-              <PlatformIcon
-                iosName="location"
-                fallback={<Mark stroke={foreground} />}
-                color={foreground}
-              />
-            </IconButton>
-          </Animated.View>
-        </View>
-      )}
+      <SheetFloatingControls visible={showControls} style={controlsStyle} />
     </>
+  );
+}
+
+function SheetFloatingControls({
+  visible,
+  style,
+}: {
+  visible: boolean;
+  style: any;
+}) {
+  const { foreground } = usePalette();
+  const locate = useLocate();
+
+  if (!visible) return null;
+
+  return (
+    <View style={styles.controlsOverlay} pointerEvents="box-none">
+      <Animated.View style={[styles.controlsBar, style]}>
+        <Link href="/settings" asChild>
+          <IconButton size="L">
+            <PlatformIcon
+              iosName="gearshape"
+              fallback={<Settings01 stroke={foreground} />}
+              color={foreground}
+            />
+          </IconButton>
+        </Link>
+
+        <IconButton onPress={locate} size="L">
+          <PlatformIcon
+            iosName="location"
+            fallback={<Mark stroke={foreground} />}
+            color={foreground}
+          />
+        </IconButton>
+      </Animated.View>
+    </View>
   );
 }
 
